@@ -21,4 +21,8 @@ export class ArtistModel extends SemanticZoomable implements ISelectable {
 
         return this.name;
     }
+
+    public get artworkPath(): string {
+        return Constants.emptyImage;
+    }
 }
