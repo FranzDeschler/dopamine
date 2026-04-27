@@ -5,14 +5,15 @@
     <div
         *ngIf="!artist.isZoomHeader"
         class="app-artist__name ellipsis px-1"
-        [ngClass]="{
-            'selected-item-background-important': artist.isSelected
-        }"
+        [ngClass]="{ 'selected-item-background-important': artist.isSelected, 'with-artist-image': settings.showArtistImages }"
         matRipple
         [matRippleTrigger]="trigger"
         #trigger
     >
-        <div class="app-artist__cover" [ngClass]="{ 'app-artist-rounded': !this.settings.showSquareImages }">
+        <div *ngIf="settings.showArtistImages"
+             class="app-artist__cover"
+             [ngClass]="{ 'app-artist-rounded': !this.settings.showSquareImages }"
+        >
             <div class="app-artist__cover__placeholder">
                 <svg width="256" height="256" viewBox="0 0 256 256">
                     <defs>

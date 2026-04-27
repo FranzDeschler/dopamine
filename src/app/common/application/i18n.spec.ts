@@ -114,6 +114,7 @@ describe('validate i18n', () => {
         'download-image-error',
         'download-lyrics-online',
         'download-missing-album-covers',
+        'download-artist-images',
         'downloading-of-artist-information-from-lastfm-disabled',
         'duration',
         'edit',
