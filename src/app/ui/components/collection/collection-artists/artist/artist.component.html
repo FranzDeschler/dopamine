@@ -11,10 +11,10 @@
         #trigger
     >
         <div *ngIf="settings.showArtistImages"
-             class="app-artist__cover"
+             class="app-artist-image-container"
              [ngClass]="{ 'app-artist-rounded': !this.settings.showSquareImages }"
         >
-            <div class="app-artist__cover__placeholder">
+            <div class="app-artist__image__placeholder">
                 <svg width="256" height="256" viewBox="0 0 256 256">
                     <defs>
                         <linearGradient id="coverGradient" x1="0%" y1="0%" x2="100%" y2="100%">

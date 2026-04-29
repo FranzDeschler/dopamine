@@ -45,24 +45,29 @@
     border-radius: 6px;
 }
 
-.app-artist__cover {
+.app-artist-image-container {
     width: 60px;
     height: 60px;
     background: var(--theme-album-cover-background);
     display: grid;
     grid-template-columns: 1fr;
     margin-right: 3px;
+
+    div {
+        grid-row-start: 1;
+        grid-column-start: 1;
+    }
 }
 
-.app-artist__cover__placeholder {
+.app-artist__image__placeholder {
     width: 60px;
     height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-.app-artist__cover__placeholder svg {
-    width: 60%;
-    height: 60%;
+    svg {
+        width: 60%;
+        height: 60%;
+    }
 }
