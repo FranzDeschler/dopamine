@@ -301,6 +301,8 @@ import { SrtLyricsGetter } from './services/lyrics/srt-lyrics-getter';
 import { HighlightsComponent } from './ui/components/highlights/highlights.component';
 import { AlbumPlaceholderComponent } from './ui/components/highlights/album-placeholder.component';
 import { EditSmartPlaylistDialogComponent } from './ui/components/dialogs/edit-smart-playlist-dialog/edit-smart-playlist-dialog.component';
+import { ArtistArtworkRepositoryBase } from './data/repositories/artist-artwork-repository.base';
+import { ArtistArtworkRepository } from './data/repositories/artist-artwork-repository';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -584,6 +586,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         { provide: TrackRepositoryBase, useClass: TrackRepository },
         { provide: FolderRepositoryBase, useClass: FolderRepository },
         { provide: AlbumArtworkRepositoryBase, useClass: AlbumArtworkRepository },
+        { provide: ArtistArtworkRepositoryBase, useClass: ArtistArtworkRepository },
         { provide: QueuedTrackRepositoryBase, useClass: QueuedTrackRepository },
         { provide: ApplicationServiceBase, useClass: ApplicationService },
         { provide: NavigationServiceBase, useClass: NavigationService },
