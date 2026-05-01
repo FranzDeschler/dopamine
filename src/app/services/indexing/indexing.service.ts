@@ -15,6 +15,7 @@ import { IFileMetadata } from '../../common/metadata/i-file-metadata';
 import { Track } from '../../data/entities/track';
 import { TrackFiller } from './track-filler';
 import { PlaybackService } from '../playback/playback.service';
+import { ArtistArtworkIndexer } from './artist-artwork-indexer';
 
 @Injectable()
 export class IndexingService implements OnDestroy {
@@ -28,6 +29,7 @@ export class IndexingService implements OnDestroy {
         private folderService: FolderServiceBase,
         private playbackService: PlaybackService,
         private albumArtworkIndexer: AlbumArtworkIndexer,
+        private artistArtworkIndexer: ArtistArtworkIndexer,
         private trackRepository: TrackRepositoryBase,
         private trackFiller: TrackFiller,
         private desktop: DesktopBase,
@@ -59,6 +61,7 @@ export class IndexingService implements OnDestroy {
 
         this.ipcProxy.onIndexingWorkerExit$.subscribe(async () => {
             await this.albumArtworkIndexer.indexAlbumArtworkAsync();
+            await this.artistArtworkIndexer.indexArtistArtworkAsync();
             this.isIndexingCollection = false;
             this.indexingFinished.next();
         });
@@ -126,6 +129,7 @@ export class IndexingService implements OnDestroy {
 
         this.logger.info('Indexing collection.', 'IndexingService', 'indexAlbumArtworkOnlyAsync');
 
+        await this.albumArtworkIndexer.indexAlbumArtworkAsync();
         await this.albumArtworkIndexer.indexAlbumArtworkAsync();
 
         this.isIndexingCollection = false;
