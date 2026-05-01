@@ -5,6 +5,7 @@ import { ImageProcessor } from '../../common/image-processor';
 import { Logger } from '../../common/logger';
 import { IFileMetadata } from '../../common/metadata/i-file-metadata';
 import { StringUtils } from '../../common/utils/string-utils';
+import { ArrayUtils } from '../../common/utils/array-utils';
 
 @Injectable()
 export class OnlineAlbumArtworkGetter {
@@ -19,10 +20,8 @@ export class OnlineAlbumArtworkGetter {
             return undefined;
         }
 
-        let title: string = '';
-        const artists: string[] = [];
-
         // Title
+        let title: string = '';
         if (!StringUtils.isNullOrWhiteSpace(fileMetadata.album)) {
             title = fileMetadata.album;
         } else if (!StringUtils.isNullOrWhiteSpace(fileMetadata.title)) {
@@ -30,17 +29,9 @@ export class OnlineAlbumArtworkGetter {
         }
 
         // Artist
-        if (fileMetadata.albumArtists != undefined && fileMetadata.albumArtists.length > 0) {
-            const nonWhiteSpaceAlbumArtists: string[] = fileMetadata.albumArtists.filter((x) => !StringUtils.isNullOrWhiteSpace(x));
-            artists.push(...nonWhiteSpaceAlbumArtists);
-        }
+        const artists: string[] = fileMetadata.albumAndTrackArtists;
 
-        if (fileMetadata.artists != undefined && fileMetadata.artists.length > 0) {
-            const nonWhiteSpaceTrackArtists: string[] = fileMetadata.artists.filter((x) => !StringUtils.isNullOrWhiteSpace(x));
-            artists.push(...nonWhiteSpaceTrackArtists);
-        }
-
-        if (StringUtils.isNullOrWhiteSpace(title) || artists.length === 0) {
+        if (StringUtils.isNullOrWhiteSpace(title) || ArrayUtils.isNullOrEmpty(artists)) {
             return undefined;
         }
 
