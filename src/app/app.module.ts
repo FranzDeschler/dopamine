@@ -303,6 +303,9 @@ import { AlbumPlaceholderComponent } from './ui/components/highlights/album-plac
 import { EditSmartPlaylistDialogComponent } from './ui/components/dialogs/edit-smart-playlist-dialog/edit-smart-playlist-dialog.component';
 import { ArtistArtworkRepositoryBase } from './data/repositories/artist-artwork-repository.base';
 import { ArtistArtworkRepository } from './data/repositories/artist-artwork-repository';
+import { OnlineArtistArtworkGetter } from './services/indexing/online-artist-artwork-getter';
+import { ArtistArtworkCacheServiceBase } from './services/artist-artwork-cache/artist-artwork-cache.service.base';
+import { ArtistArtworkCacheService } from './services/artist-artwork-cache/artist-artwork-cache.service';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -580,6 +583,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         ExternalAlbumArtworkGetter,
         OnlineAlbumArtworkGetter,
         ExternalArtworkPathGetter,
+        OnlineArtistArtworkGetter,
         IndexingService,
         { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: CustomTooltipDefaults },
         { provide: FileAccessBase, useClass: FileAccess },
@@ -591,6 +595,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         { provide: ApplicationServiceBase, useClass: ApplicationService },
         { provide: NavigationServiceBase, useClass: NavigationService },
         { provide: AlbumArtworkCacheServiceBase, useClass: AlbumArtworkCacheService },
+        { provide: ArtistArtworkCacheServiceBase, useClass: ArtistArtworkCacheService },
         { provide: TranslatorServiceBase, useClass: TranslatorService },
         { provide: UpdateServiceBase, useClass: UpdateService },
         { provide: NotificationServiceBase, useClass: NotificationService },
