@@ -82,7 +82,7 @@ describe('CollectionArtistsComponent', () => {
     }
 
     function createArtistModel(artistName: string): ArtistModel {
-        return new ArtistModel(artistName, translatorServiceMock.object);
+        return new ArtistModel(artistName, translatorServiceMock.object, applicationPathsMock.object);
     }
 
     function createAlbumModel(albumKey: string): AlbumModel {

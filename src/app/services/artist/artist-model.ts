@@ -3,11 +3,13 @@ import { StringUtils } from '../../common/utils/string-utils';
 import { ISelectable } from '../../ui/interfaces/i-selectable';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { Constants } from '../../common/application/constants';
+import { ApplicationPaths } from '../../common/application/application-paths';
 
 export class ArtistModel extends SemanticZoomable implements ISelectable {
     public constructor(
         public name: string,
         private translatorService: TranslatorServiceBase,
+        private applicationPaths: ApplicationPaths,
     ) {
         super();
     }
@@ -15,14 +17,22 @@ export class ArtistModel extends SemanticZoomable implements ISelectable {
     public isSelected: boolean = false;
 
     public get displayName(): string {
-        if (StringUtils.isNullOrWhiteSpace(this.name)) {
+        if (this.isUnknownArtist) {
             return this.translatorService.get(Constants.unknownArtist);
         }
 
         return this.name;
     }
 
+    public get isUnknownArtist(): boolean {
+        return StringUtils.isNullOrWhiteSpace(this.name);
+    }
+
     public get artworkPath(): string {
-        return Constants.emptyImage;
+        if (this.isUnknownArtist) {
+            return Constants.emptyImage;
+        }
+
+        return 'file:///' + this.applicationPaths.artistArtFullPath(this.displayName);
     }
 }

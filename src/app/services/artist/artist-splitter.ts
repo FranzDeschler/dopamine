@@ -4,11 +4,13 @@ import { ArtistModel } from './artist-model';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { StringUtils } from '../../common/utils/string-utils';
 import { CollectionUtils } from '../../common/utils/collections-utils';
+import { ApplicationPaths } from '../../common/application/application-paths';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistSplitter {
     public constructor(
         private translatorService: TranslatorServiceBase,
+        private applicationPaths: ApplicationPaths,
         private settings: SettingsBase,
     ) {}
 
@@ -31,7 +33,7 @@ export class ArtistSplitter {
             } else {
                 if (!uniqueArtistNames.has(artist.toLowerCase())) {
                     uniqueArtistNames.add(artist.toLowerCase());
-                    returnArtists.push(new ArtistModel(artist, this.translatorService));
+                    returnArtists.push(new ArtistModel(artist, this.translatorService, this.applicationPaths));
                 }
             }
         }
@@ -44,7 +46,7 @@ export class ArtistSplitter {
 
         for (const exception of exceptions) {
             if (StringUtils.includesIgnoreCase(artist, exception)) {
-                artists.push(new ArtistModel(exception, this.translatorService));
+                artists.push(new ArtistModel(exception, this.translatorService, this.applicationPaths));
                 const escapedException = exception.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const regEx: RegExp = new RegExp(escapedException, 'ig');
                 artist = artist.replace(regEx, '¨');
@@ -54,7 +56,7 @@ export class ArtistSplitter {
         // Also adds a space before and after the separator
         const escapedSeparators = separators.map((separator) => ` ${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} `);
         const regex: RegExp = new RegExp(escapedSeparators.join('|'), 'i');
-        artists.push(...artist.split(regex).map((a: string) => new ArtistModel(a.trim(), this.translatorService)));
+        artists.push(...artist.split(regex).map((a: string) => new ArtistModel(a.trim(), this.translatorService, this.applicationPaths)));
 
         return artists.filter((a: ArtistModel): boolean => a.name !== '¨');
     }
