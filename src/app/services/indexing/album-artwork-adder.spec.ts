@@ -41,6 +41,9 @@ class FileMetadataImplementation implements IFileMetadata {
     public beatsPerMinute: number;
     public save(): void {}
     public async loadAsync(): Promise<void> {}
+    public get albumAndTrackArtists(): string[] {
+        return [];
+    }
 }
 
 describe('AlbumArtworkAdder', () => {

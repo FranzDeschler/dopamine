@@ -165,6 +165,19 @@ export class TrackRepository implements TrackRepositoryBase {
         return statement.all();
     }
 
+    public getArtistDataThatNeedsIndexing(): ArtistData[] | undefined {
+        const database = this.databaseFactory.create();
+
+        const statement = database.prepare(
+            `${QueryParts.selectArtistDataQueryPart()}
+                WHERE (t.ArtistKey IS NOT NULL AND t.ArtistKey <> ''
+                AND t.ArtistKey NOT IN (SELECT ArtistKey FROM ArtistArtwork)) OR NeedsArtistArtworkIndexing=1
+                GROUP BY t.ArtistKey;`,
+        );
+
+        return statement.all();
+    }
+
     public getAlbumDataForAlbumKey(albumKeyIndex: string, albumKey: string): AlbumData[] | undefined {
         const database: any = this.databaseFactory.create();
 
@@ -355,6 +368,12 @@ export class TrackRepository implements TrackRepositoryBase {
         return statement.get(albumKey);
     }
 
+    public getLastModifiedTrackForArtistKeyAsync(artistKey: string): Track | undefined {
+        const database: any = this.databaseFactory.create();
+        const statement = database.prepare(`${QueryParts.selectTracksQueryPart(false)} WHERE t.ArtistKey=?;`);
+        return statement.get(artistKey);
+    }
+
     public disableNeedsAlbumArtworkIndexing(albumKey: string): void {
         const database: any = this.databaseFactory.create();
         const statement: any = database.prepare(`UPDATE Track
@@ -362,6 +381,15 @@ export class TrackRepository implements TrackRepositoryBase {
                                                  WHERE AlbumKey = ?;`);
 
         statement.run(albumKey);
+    }
+
+    public disableNeedsArtistArtworkIndexing(artistKey: string): void {
+        const database: any = this.databaseFactory.create();
+        const statement: any = database.prepare(`UPDATE Track
+                                                 SET NeedsArtistArtworkIndexing=0
+                                                 WHERE ArtistKey = ?;`);
+
+        statement.run(artistKey);
     }
 
     public updateTrack(track: Track): void {

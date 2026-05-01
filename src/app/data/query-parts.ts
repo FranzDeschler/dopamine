@@ -50,6 +50,14 @@ export class QueryParts {
         return selectAlbumDataQueryPart;
     }
 
+    public static selectArtistDataQueryPart(): string {
+        return `SELECT t.Artists AS artists,
+               a.ArtistKey as artistKey,
+               a.ArtworkID as artworkId
+               FROM Track t
+               LEFT JOIN ArtistArtwork a ON t.ArtistKey=a.ArtistKey`;
+    }
+
     public static selectTracksQueryPart(onlyVisibleTracks: boolean): string {
         let selectTracksQueryPart: string = `SELECT DISTINCT t.TrackID AS trackId,
                                                              t.Artists AS artists,
@@ -79,6 +87,7 @@ export class QueryParts {
                                                              t.DateFileModified AS dateFileModified,
                                                              t.NeedsIndexing AS needsIndexing,
                                                              t.NeedsAlbumArtworkIndexing AS needsAlbumArtworkIndexing,
+                                                             t.NeedsArtistArtworkIndexing AS needsArtistArtworkIndexing,
                                                              t.IndexingSuccess AS indexingSuccess,
                                                              t.IndexingFailureReason AS indexingFailureReason,
                                                              t.NewRating AS rating,

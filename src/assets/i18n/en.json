@@ -85,6 +85,7 @@
     "added-tracks": "Added {{numberOfAddedTracks}} songs ({{percentageOfAddedTracks}}%)",
     "updating-tracks": "Updating songs",
     "updating-album-artwork": "Updating album covers",
+    "updating-artist-artwork": "Updating artist images",
     "click-here-to-download-new-version": "Click here to download version {{version}}",
     "yes": "Yes",
     "no": "No",
