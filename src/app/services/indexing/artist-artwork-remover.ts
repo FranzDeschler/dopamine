@@ -129,8 +129,8 @@ export class ArtistArtworkRemover {
                 'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
             );
 
-            const coverArtCacheFullPath: string = this.applicationPaths.coverArtCacheFullPath();
-            const allArtistArtworkFilePaths: string[] = await this.fileAccess.getFilesInDirectoryAsync(coverArtCacheFullPath);
+            const artistArtCacheFullPath: string = this.applicationPaths.artistArtCacheFullPath();
+            const allArtistArtworkFilePaths: string[] = await this.fileAccess.getFilesInDirectoryAsync(artistArtCacheFullPath);
 
             this.logger.info(
                 `Found ${allArtistArtworkFilePaths.length} artwork files on disk`,

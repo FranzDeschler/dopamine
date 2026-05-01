@@ -9,6 +9,7 @@ import { ArtistSplitter } from './artist-splitter';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { SettingsMock } from '../../testing/settings-mock';
 import { Logger } from '../../common/logger';
+import { ApplicationPaths } from '../../common/application/application-paths';
 
 describe('ArtistService', () => {
     let translatorServiceMock: IMock<TranslatorServiceBase>;
@@ -16,11 +17,13 @@ describe('ArtistService', () => {
     let settingsMock: SettingsBase;
     let artistSplitter: ArtistSplitter;
     let loggerMock: IMock<Logger>;
+    let applicationPathsMock: IMock<ApplicationPaths>;
 
     beforeEach(() => {
         translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
         trackRepositoryMock = Mock.ofType<TrackRepositoryBase>();
         loggerMock = Mock.ofType<Logger>();
+        applicationPathsMock = Mock.ofType<ApplicationPaths>();
         settingsMock = new SettingsMock();
         settingsMock.artistSplitSeparators = '';
         settingsMock.artistSplitExceptions = '';
@@ -29,13 +32,13 @@ describe('ArtistService', () => {
     });
 
     function createService(): ArtistService {
-        artistSplitter = new ArtistSplitter(translatorServiceMock.object, settingsMock);
+        artistSplitter = new ArtistSplitter(translatorServiceMock.object, applicationPathsMock.object, settingsMock);
 
         return new ArtistService(artistSplitter, trackRepositoryMock.object, settingsMock, loggerMock.object);
     }
 
     function createArtistModel(artist: string): ArtistModel {
-        return new ArtistModel(artist, translatorServiceMock.object);
+        return new ArtistModel(artist, translatorServiceMock.object, applicationPathsMock.object);
     }
 
     describe('constructor', () => {
@@ -271,7 +274,7 @@ describe('ArtistService', () => {
     describe('getSourceArtists', () => {
         it('should get the source artists for a given list of artists', () => {
             // Arrange
-            let artistDatas: ArtistData[] = [
+            const artistDatas: ArtistData[] = [
                 new ArtistData(';Artist1;'),
                 new ArtistData(';artist1;'),
                 new ArtistData(';Artist2;'),
