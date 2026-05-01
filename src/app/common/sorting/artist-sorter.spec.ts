@@ -3,6 +3,7 @@ import { ArtistModel } from '../../services/artist/artist-model';
 import { TranslatorServiceBase } from '../../services/translator/translator.service.base';
 import { ArtistSorter } from './artist-sorter';
 import { Logger } from '../logger';
+import { ApplicationPaths } from '../application/application-paths';
 
 describe('ArtistSorter', () => {
     let artistModel1: ArtistModel;
@@ -20,6 +21,7 @@ describe('ArtistSorter', () => {
 
     let translatorServiceMock: IMock<TranslatorServiceBase>;
     let loggerMock: IMock<Logger>;
+    let applicationPathsMock: IMock<ApplicationPaths>;
 
     let artistSorter: ArtistSorter;
     let artists: ArtistModel[];
@@ -27,19 +29,20 @@ describe('ArtistSorter', () => {
     beforeEach(() => {
         translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
         loggerMock = Mock.ofType<Logger>();
+        applicationPathsMock = Mock.ofType<ApplicationPaths>();
 
-        artistModel1 = new ArtistModel('Artist1', translatorServiceMock.object);
-        artistModel2 = new ArtistModel('Artist2', translatorServiceMock.object);
-        artistModel3 = new ArtistModel('Artist3', translatorServiceMock.object);
-        artistModel4 = new ArtistModel('Artist4', translatorServiceMock.object);
-        artistModel5 = new ArtistModel('Artist5', translatorServiceMock.object);
-        artistModel6 = new ArtistModel('Artist6', translatorServiceMock.object);
-        artistModel7 = new ArtistModel('Artist7', translatorServiceMock.object);
-        artistModel8 = new ArtistModel('Artist8', translatorServiceMock.object);
-        artistModel9 = new ArtistModel('Artist9', translatorServiceMock.object);
-        artistModel10 = new ArtistModel('Artist10', translatorServiceMock.object);
-        artistModel11 = new ArtistModel('', translatorServiceMock.object);
-        artistModel12 = new ArtistModel('Артист', translatorServiceMock.object);
+        artistModel1 = new ArtistModel('Artist1', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel2 = new ArtistModel('Artist2', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel3 = new ArtistModel('Artist3', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel4 = new ArtistModel('Artist4', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel5 = new ArtistModel('Artist5', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel6 = new ArtistModel('Artist6', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel7 = new ArtistModel('Artist7', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel8 = new ArtistModel('Artist8', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel9 = new ArtistModel('Artist9', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel10 = new ArtistModel('Artist10', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel11 = new ArtistModel('', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel12 = new ArtistModel('Артист', translatorServiceMock.object, applicationPathsMock.object);
 
         artists = [
             artistModel2,

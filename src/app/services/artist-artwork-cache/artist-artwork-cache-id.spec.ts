@@ -44,7 +44,7 @@ describe('ArtistArtworkCacheId', () => {
             const instance: ArtistArtworkCacheId = createInstance();
 
             // Assert
-            expect(instance.id.length).toEqual(42);
+            expect(instance.id.length).toEqual(43);
         });
     });
 });

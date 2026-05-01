@@ -312,6 +312,7 @@ describe('validate i18n', () => {
         'update-album-cover',
         'updates',
         'updating-album-artwork',
+        'updating-artist-artwork',
         'updating-tracks',
         'use-light-theme',
         'use-system-title-bar',

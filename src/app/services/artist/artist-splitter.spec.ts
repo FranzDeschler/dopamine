@@ -4,12 +4,14 @@ import { ArtistSplitter } from './artist-splitter';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { IMock, Mock } from 'typemoq';
 import { ArtistModel } from './artist-model';
+import { ApplicationPaths } from '../../common/application/application-paths';
 
 describe('ArtistSplitter', () => {
     let translatorServiceMock: IMock<TranslatorServiceBase>;
+    let applicationPathsMock: IMock<ApplicationPaths>;
     let settingsMock: SettingsBase;
 
-    let artists: string[] = [
+    const artists: string[] = [
         'Artist1',
         'artist1',
         'Artist2',
@@ -27,12 +29,12 @@ describe('ArtistSplitter', () => {
     beforeEach(() => {
         translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
         translatorServiceMock.setup((x) => x.get('unknown-artist')).returns(() => 'Unknown artist');
-
+        applicationPathsMock = Mock.ofType<ApplicationPaths>();
         settingsMock = new SettingsMock();
     });
 
     function createArtistSplitter(): ArtistSplitter {
-        return new ArtistSplitter(translatorServiceMock.object, settingsMock);
+        return new ArtistSplitter(translatorServiceMock.object, applicationPathsMock.object, settingsMock);
     }
 
     describe('constructor', () => {

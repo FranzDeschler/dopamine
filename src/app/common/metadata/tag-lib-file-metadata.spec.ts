@@ -1,6 +1,16 @@
-import { RatingConverter } from './rating-converter';
 import { IFileMetadata } from './i-file-metadata';
 import { TagLibFileMetadata } from './tag-lib-file-metadata';
+
+jest.mock('node-taglib-sharp', () => ({
+    File: { createFromPath: jest.fn() },
+    ByteVector: {},
+    Id3v2FrameClassType: {},
+    Id3v2FrameIdentifiers: {},
+    Id3v2PopularimeterFrame: {},
+    Id3v2Tag: {},
+    PictureType: {},
+    TagTypes: {},
+}));
 
 describe('TagLibFileMetadata', () => {
     describe('get albumAndTrackArtists', () => {
@@ -37,7 +47,7 @@ describe('TagLibFileMetadata', () => {
             const artists: string[] = metadata.albumAndTrackArtists;
 
             // Assert
-            expect(artists).toEqual([...metadata.artists, ...metadata.albumArtists]);
+            expect(artists).toEqual([...metadata.albumArtists, ...metadata.artists]);
         });
     });
 });

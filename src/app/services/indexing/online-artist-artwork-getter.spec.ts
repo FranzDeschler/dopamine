@@ -37,16 +37,6 @@ describe('OnlineArtistArtworkGetter', () => {
         lastfmArtist.imageMega = imageUrl;
 
         settingsMock.showArtistImages = true;
-
-        imageProcessorMock
-            .setup((x) => x.convertOnlineImageToBufferAsync(imageUrl))
-            .returns(() => Promise.resolve(expectedArtistArtwork));
-
-        lastfmApiMock
-            .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-            .returns(() => Promise.resolve(lastfmArtist));
-
-        metaDataMock.setup((x) => x.albumAndTrackArtists).returns(() => ['Artist 1', 'Artist 2']);
     });
 
     describe('getOnlineArtistArtworkAsync', () => {
@@ -81,6 +71,17 @@ describe('OnlineArtistArtworkGetter', () => {
         });
 
         it('should return artwork if fileMetaData has artists', async () => {
+            // Arrange
+            metaDataMock
+                .setup((x) => x.albumAndTrackArtists)
+                .returns(() => ['Artist 1', 'Artist 2']);
+            imageProcessorMock
+                .setup((x) => x.convertOnlineImageToBufferAsync(imageUrl))
+                .returns(() => Promise.resolve(expectedArtistArtwork));
+            lastfmApiMock
+                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
+                .returns(() => Promise.resolve(lastfmArtist));
+
             // Act
             const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(metaDataMock.object);
 
@@ -90,6 +91,12 @@ describe('OnlineArtistArtworkGetter', () => {
 
         it('should return undefined if converting file to data throws error', async () => {
             // Arrange
+            metaDataMock
+                .setup((x) => x.albumAndTrackArtists)
+                .returns(() => ['Artist 1', 'Artist 2']);
+            lastfmApiMock
+                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
+                .returns(() => Promise.resolve(lastfmArtist));
             imageProcessorMock
                 .setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString()))
                 .throws(new Error('An error occurred'));
@@ -103,6 +110,12 @@ describe('OnlineArtistArtworkGetter', () => {
 
         it('should return undefined if getting online artist info throws error', async () => {
             // Arrange
+            metaDataMock
+                .setup((x) => x.albumAndTrackArtists)
+                .returns(() => ['Artist 1', 'Artist 2']);
+            imageProcessorMock
+                .setup((x) => x.convertOnlineImageToBufferAsync(imageUrl))
+                .returns(() => Promise.resolve(expectedArtistArtwork));
             lastfmApiMock
                 .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
                 .throws(new Error('An error occurred'));

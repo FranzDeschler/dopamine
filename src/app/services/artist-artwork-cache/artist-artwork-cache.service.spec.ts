@@ -9,6 +9,9 @@ import { ArtistArtworkCacheService } from './artist-artwork-cache.service';
 import { FileAccessBase } from '../../common/io/file-access.base';
 import { ApplicationPaths } from '../../common/application/application-paths';
 
+const cachePath: string = '/home/user/.config/Dopamine/Cache/ArtistArt';
+const cachedArtworkFilePath: string = `${cachePath}/Dummy.jpg`;
+
 describe('ArtistArtworkCacheService', () => {
     let artistArtworkCacheIdFactoryMock: IMock<ArtistArtworkCacheIdFactory>;
     let imageProcessorMock: IMock<ImageProcessor>;
@@ -42,7 +45,7 @@ describe('ArtistArtworkCacheService', () => {
 
         it('should create the full directory path to the artwork cache if it does not exist', () => {
             // Arrange
-            applicationPathsMock.setup((x) => x.artistArtCacheFullPath()).returns(() => '/home/user/.config/Dopamine/Cache/ArtistArt');
+            applicationPathsMock.setup((x) => x.artistArtCacheFullPath()).returns(() => cachePath);
 
             // Act
             service = new ArtistArtworkCacheService(
@@ -55,7 +58,7 @@ describe('ArtistArtworkCacheService', () => {
 
             // Assert
             fileAccessMock.verify(
-                (x) => x.createFullDirectoryPathIfDoesNotExist('/home/user/.config/Dopamine/Cache/ArtistArt'),
+                (x) => x.createFullDirectoryPathIfDoesNotExist(cachePath),
                 Times.exactly(1),
             );
         });
@@ -102,9 +105,8 @@ describe('ArtistArtworkCacheService', () => {
             const imageBuffer = Buffer.from([1, 2, 3]);
             const resizedImageBuffer = Buffer.from([4, 5, 6]);
             const artistArtworkCacheIdToCreate: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
-            const cachedArtworkFilePath: string = '/home/user/Dopamine/Cache/ArtistArt/Dummy.jpg';
             artistArtworkCacheIdFactoryMock.setup((x) => x.create()).returns(() => artistArtworkCacheIdToCreate);
-            applicationPathsMock.setup((x) => x.coverArtFullPath(artistArtworkCacheIdToCreate.id)).returns(() => cachedArtworkFilePath);
+            applicationPathsMock.setup((x) => x.artistArtFullPath(artistArtworkCacheIdToCreate.id)).returns(() => cachedArtworkFilePath);
             imageProcessorMock
                 .setup((x) =>
                     x.toResizedJpegBufferAsync(
@@ -128,9 +130,8 @@ describe('ArtistArtworkCacheService', () => {
         it('should delete cached artwork file if it exists', async () => {
             // Arrange
             const artistArtworkCacheIdToCreate: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
-            const cachedArtworkFilePath: string = '/home/user/Dopamine/Cache/ArtistArt/Dummy.jpg';
             artistArtworkCacheIdFactoryMock.setup((x) => x.create()).returns(() => artistArtworkCacheIdToCreate);
-            applicationPathsMock.setup((x) => x.coverArtFullPath(artistArtworkCacheIdToCreate.id)).returns(() => cachedArtworkFilePath);
+            applicationPathsMock.setup((x) => x.artistArtFullPath(artistArtworkCacheIdToCreate.id)).returns(() => cachedArtworkFilePath);
 
             // Act
             await service.removeArtworkDataFromCacheAsync(artistArtworkCacheIdToCreate.id);

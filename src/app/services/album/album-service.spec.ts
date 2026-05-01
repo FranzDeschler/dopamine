@@ -100,8 +100,8 @@ describe('AlbumService', () => {
                 .setup((x) => x.getAlbumDataForTrackArtists('', ['Source artist 1', 'Source artist 2']))
                 .returns(() => albumDatas);
 
-            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object);
-            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object);
+            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object, applicationPathsMock.object);
+            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object, applicationPathsMock.object);
 
             artistServiceMock.setup((x) => x.getSourceArtists([artist1, artist2])).returns(() => ['Source artist 1', 'Source artist 2']);
 
@@ -129,8 +129,8 @@ describe('AlbumService', () => {
                 .setup((x) => x.getAlbumDataForAlbumArtists('', ['Source artist 1', 'Source artist 2']))
                 .returns(() => albumDatas);
 
-            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object);
-            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object);
+            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object, applicationPathsMock.object);
+            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object, applicationPathsMock.object);
 
             artistServiceMock.setup((x) => x.getSourceArtists([artist1, artist2])).returns(() => ['Source artist 1', 'Source artist 2']);
 
@@ -160,8 +160,8 @@ describe('AlbumService', () => {
                 .setup((x) => x.getAlbumDataForAlbumArtists('', ['Source artist 1', 'Source artist 2']))
                 .returns(() => [albumData2]);
 
-            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object);
-            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object);
+            const artist1: ArtistModel = new ArtistModel('Artist 1', translatorServiceMock.object, applicationPathsMock.object);
+            const artist2: ArtistModel = new ArtistModel('Artist 2', translatorServiceMock.object, applicationPathsMock.object);
 
             artistServiceMock.setup((x) => x.getSourceArtists([artist1, artist2])).returns(() => ['Source artist 1', 'Source artist 2']);
 

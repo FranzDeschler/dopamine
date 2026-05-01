@@ -48,7 +48,6 @@ describe('ArtistArtworkRemover', () => {
         applicationPathsMock
             .setup((x) => x.artistArtCacheFullPath())
             .returns(() => artistArtCachePath);
-
         fileAccessMock
             .setup((x) => x.getFileNameWithoutExtension(artwork1Path))
             .returns(() => artwork1FileNameWithoutExtension);
@@ -197,6 +196,8 @@ describe('ArtistArtworkRemover', () => {
         });
 
         it('should get all artwork files which are in the artist art cache path', async () => {
+            // Arrange
+
             // Act
             await artistArtworkRemover.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync();
 
