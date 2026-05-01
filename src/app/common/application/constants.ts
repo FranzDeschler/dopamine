@@ -53,8 +53,8 @@ export class Constants {
 
     public static readonly fontSizes: number[] = [12, 13, 14, 15];
 
-    public static readonly cachedCoverArtMaximumSize: number = 360;
-    public static readonly cachedCoverArtJpegQuality: number = 80;
+    public static readonly cachedArtworkMaximumSize: number = 360;
+    public static readonly cachedArtworkJpegQuality: number = 80;
 
     public static readonly externalCoverArtPatterns: string[] = [
         'front.png',
