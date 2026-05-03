@@ -8,6 +8,7 @@ import { ApplicationPaths } from '../../common/application/application-paths';
 export class ArtistModel extends SemanticZoomable implements ISelectable {
     public constructor(
         public name: string,
+        public artworkId: string | undefined,
         private translatorService: TranslatorServiceBase,
         private applicationPaths: ApplicationPaths,
     ) {
@@ -29,7 +30,7 @@ export class ArtistModel extends SemanticZoomable implements ISelectable {
     }
 
     public get artworkPath(): string {
-        if (this.isUnknownArtist) {
+        if (this.isUnknownArtist || StringUtils.isNullOrWhiteSpace(this.artworkId)) {
             return Constants.emptyImage;
         }
 
