@@ -19,7 +19,7 @@ export abstract class TrackRepositoryBase {
     public abstract getAlbumDataForAlbumArtists(albumKeyIndex: string, albumArtists: string[]): AlbumData[] | undefined;
     public abstract getAlbumDataForGenres(albumKeyIndex: string, genres: string[]): AlbumData[] | undefined;
     public abstract getAlbumDataThatNeedsIndexing(albumKeyIndex: string): AlbumData[] | undefined;
-    public abstract getArtistDataThatNeedsIndexing(): ArtistData[] | undefined;
+    public abstract getArtistDataThatNeedsArtistArtworkIndexing(): ArtistData[] | undefined;
     public abstract getTrackArtistData(): ArtistData[] | undefined;
     public abstract getAlbumArtistData(): ArtistData[] | undefined;
     public abstract getGenreData(): GenreData[] | undefined;

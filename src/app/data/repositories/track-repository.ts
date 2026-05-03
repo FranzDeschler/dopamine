@@ -165,15 +165,11 @@ export class TrackRepository implements TrackRepositoryBase {
         return statement.all();
     }
 
-    public getArtistDataThatNeedsIndexing(): ArtistData[] | undefined {
+    public getArtistDataThatNeedsArtistArtworkIndexing(): ArtistData[] | undefined {
         const database = this.databaseFactory.create();
-
-        const statement = database.prepare(
-            `${QueryParts.selectArtistDataQueryPart()}
-                WHERE (t.ArtistKey IS NOT NULL AND t.ArtistKey <> ''
-                AND t.ArtistKey NOT IN (SELECT ArtistKey FROM ArtistArtwork)) OR NeedsArtistArtworkIndexing=1
-                GROUP BY t.ArtistKey;`,
-        );
+        const statement = database.prepare(`SELECT DISTINCT t.Artists as artists
+                                            FROM Track t
+                                            WHERE t.NeedsArtistArtworkIndexing=1`);
 
         return statement.all();
     }
@@ -383,13 +379,14 @@ export class TrackRepository implements TrackRepositoryBase {
         statement.run(albumKey);
     }
 
-    public disableNeedsArtistArtworkIndexing(artistKey: string): void {
+    public disableNeedsArtistArtworkIndexing(artist: string): void {
         const database: any = this.databaseFactory.create();
         const statement: any = database.prepare(`UPDATE Track
                                                  SET NeedsArtistArtworkIndexing=0
-                                                 WHERE ArtistKey = ?;`);
+                                                 WHERE LOWER(Artists) LIKE '%${Constants.columnValueDelimiter}' || LOWER(?) || '${Constants.columnValueDelimiter}%'
+                                                 AND NeedsArtistArtworkIndexing=1;`);
 
-        statement.run(artistKey);
+        statement.run(artist);
     }
 
     public updateTrack(track: Track): void {
@@ -404,7 +401,6 @@ export class TrackRepository implements TrackRepositoryBase {
                  AlbumKey=@albumKey,
                  AlbumKey2=@albumKey2,
                  AlbumKey3=@albumKey3,
-                 ArtistKey=@artistKey,
                  Path=@path,
                  SafePath=@safePath,
                  FileName=@fileName,
@@ -467,6 +463,7 @@ export class TrackRepository implements TrackRepositoryBase {
             dateFileModified: track.dateFileModified,
             needsIndexing: track.needsIndexing,
             needsAlbumArtworkIndexing: track.needsAlbumArtworkIndexing,
+            needsArtistArtworkIndexing: track.needsArtistArtworkIndexing,
             indexingSuccess: track.indexingSuccess,
             indexingFailureReason: track.indexingFailureReason,
             rating: track.rating,

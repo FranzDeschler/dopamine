@@ -7,22 +7,38 @@ import { Injectable } from '@angular/core';
 import { DatabaseFactory } from '../database-factory';
 import { ArtistArtwork } from '../entities/artist-artwork';
 import { ArtistArtworkRepositoryBase } from './artist-artwork-repository.base';
+import { ClauseCreator } from '../clause-creator';
 
 @Injectable()
 export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public constructor(private databaseFactory: DatabaseFactory) {}
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
-        const statement = this.database.prepare('INSERT INTO ArtistArtwork (ArtistKey, ArtworkID) VALUES (?, ?);');
-        statement.run(artistArtwork.artistKey, artistArtwork.artworkId);
+        const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
+        statement.run(artistArtwork.artist, artistArtwork.artworkId);
     }
 
     public getAllArtistArtwork(): ArtistArtwork[] | undefined {
         const statement = this.database.prepare(
-            `SELECT ArtistArtworkID as artistArtworkId, ArtistKey as artistKey, ArtworkID as artworkId FROM ArtistArtwork;`,
+            `SELECT ArtistArtworkID as artistArtworkId, 
+                    Artist as artist, 
+                    ArtworkID as artworkId 
+            FROM ArtistArtwork;`
         );
 
         return statement.all();
+    }
+
+    public getArtistArtworkForArtist(artist: string): ArtistArtwork | undefined {
+        const statement = this.database.prepare(
+            `SELECT ArtistArtworkID as artistArtworkId, 
+                    Artist as artist, 
+                    ArtworkID as artworkId 
+            FROM ArtistArtwork
+            WHERE Artist=?;`,
+        );
+
+        return statement.get(artist);
     }
 
     public getNumberOfArtistArtwork(): number {
@@ -34,8 +50,11 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public getNumberOfArtistArtworkThatHasNoTrack(): number {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork
-            FROM ArtistArtwork
-            WHERE ArtistKey NOT IN (SELECT ArtistKey FROM Track);`,
+            FROM ArtistArtwork a
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Track t
+                WHERE ${this.trackArtistLikeArtworkArtist()}
+            );`,
         );
 
         const result: any = statement.get();
@@ -44,7 +63,11 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public deleteArtistArtworkThatHasNoTrack(): number {
         const statement = this.database.prepare(
-            `DELETE FROM ArtistArtwork WHERE ArtistKey NOT IN (SELECT ArtistKey FROM Track);`,
+            `DELETE FROM ArtistArtwork a 
+             WHERE NOT EXISTS (
+                SELECT 1 FROM Track t
+                WHERE ${this.trackArtistLikeArtworkArtist()}
+             );`,
         );
 
         const info = statement.run();
@@ -54,8 +77,9 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public getNumberOfArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork 
-            FROM ArtistArtwork 
-            WHERE ArtistKey IN (SELECT ArtistKey FROM Track WHERE NeedsArtistArtworkIndexing = 1);`,
+             FROM ArtistArtwork a
+             LEFT JOIN Track t ON ${this.trackArtistLikeArtworkArtist()}
+             WHERE t.NeedsArtistArtworkIndexing = 1;`,
         );
 
         const result: any = statement.get();
@@ -64,8 +88,12 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public deleteArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number {
         const statement = this.database.prepare(
-            `DELETE FROM ArtistArtwork
-            WHERE ArtistKey IN (SELECT ArtistKey FROM Track WHERE NeedsArtistArtworkIndexing = 1);`
+            `DELETE FROM ArtistArtwork a
+             WHERE EXISTS (
+                 SELECT 1 FROM Track t
+                 WHERE ${this.trackArtistLikeArtworkArtist()}
+                 AND t.NeedsArtistArtworkIndexing = 1
+             );`,
         );
 
         const info = statement.run();
@@ -74,5 +102,9 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     private get database(): any {
         return this.databaseFactory.create();
+    }
+
+    private trackArtistLikeArtworkArtist(): string {
+        return ClauseCreator.createOrLikeColumnClause('t.Artists', 'a.Artist');
     }
 }

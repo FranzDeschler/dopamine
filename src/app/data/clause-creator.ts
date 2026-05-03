@@ -1,4 +1,5 @@
 import { StringUtils } from '../common/utils/string-utils';
+import { Constants } from '../common/application/constants';
 
 export class ClauseCreator {
     public static escapeQuotes(sourceString: string): string {
@@ -39,5 +40,17 @@ export class ClauseCreator {
         orLikeClause += ')';
 
         return orLikeClause;
+    }
+
+    public static createOrLikeColumnClause(sourceColumn: string, ...targetColumns: string[]): string {
+        const orClauses: string[] = [];
+
+        for (const column of targetColumns) {
+            orClauses.push(
+                `(LOWER(${sourceColumn}) LIKE '%${Constants.columnValueDelimiter}' || LOWER(${column}) || '${Constants.columnValueDelimiter}%')`,
+            );
+        }
+
+        return ' (' + orClauses.join(' OR ') + ')';
     }
 }
