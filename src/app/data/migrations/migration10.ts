@@ -7,11 +7,10 @@ export class Migration10 extends Migration {
     public up(): void {
         this.sql(`CREATE TABLE ArtistArtwork (
                         ArtistArtworkID	    INTEGER,
-                        ArtistKey	        TEXT,
+                        Artist	            TEXT,
                         ArtworkID	        TEXT,
                         PRIMARY KEY(ArtistArtworkID));`);
 
-        this.sql('ALTER TABLE Track ADD ArtistKey TEXT;');
         this.sql('ALTER TABLE Track ADD NeedsArtistArtworkIndexing INTEGER;');
         this.sql('UPDATE Track SET NeedsArtistArtworkIndexing=1;');
     }

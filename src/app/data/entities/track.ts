@@ -27,6 +27,7 @@ export class Track {
         this.dateFileModified = 0;
         this.needsIndexing = 0;
         this.needsAlbumArtworkIndexing = 0;
+        this.needsArtistArtworkIndexing = 0;
         this.indexingSuccess = 1;
         this.indexingFailureReason = '';
         this.rating = 0;
@@ -66,6 +67,7 @@ export class Track {
     public dateFileModified: number | undefined;
     public needsIndexing: number | undefined;
     public needsAlbumArtworkIndexing: number | undefined;
+    public needsArtistArtworkIndexing: number | undefined;
     public indexingSuccess: number | undefined;
     public indexingFailureReason: string | undefined;
     public rating: number | undefined;
