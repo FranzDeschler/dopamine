@@ -4,10 +4,13 @@ import { LastfmArtist } from '../../common/api/lastfm/lastfm-artist';
 import { Logger } from '../../common/logger';
 import { ImageProcessor } from '../../common/image-processor';
 import { LastfmApi } from '../../common/api/lastfm/lastfm.api';
+import { OnlineArtistImageGetter } from '../artist-information/online-artist-image-getter';
+import { Constants } from '../../common/application/constants';
 
 @Injectable()
 export class OnlineArtistArtworkGetter {
     public constructor(
+        private onlineArtistImageGetter: OnlineArtistImageGetter,
         private imageProcessor: ImageProcessor,
         private lastfmApi: LastfmApi,
         private logger: Logger,
@@ -19,32 +22,31 @@ export class OnlineArtistArtworkGetter {
         try {
             lastfmArtist = await this.lastfmApi.getArtistInfoAsync(artistName, false, 'EN');
         } catch (e: unknown) {
-            this.logger.error(
-                e,
-                `Could not get artist info for '${artistName}'`,
-                'ArtistArtworkGetter',
-                'getArtistArtworkAsync'
-            );
+            this.logger.error(e, `Could not get artist info for '${artistName}'`, 'ArtistArtworkGetter', 'getArtistArtworkAsync');
         }
 
         if (lastfmArtist != undefined) {
-            if (!StringUtils.isNullOrWhiteSpace(lastfmArtist.largestImage())) {
+            let artistImageUrl: string = '';
+
+            try {
+                artistImageUrl = await this.onlineArtistImageGetter.getResizedArtistImageAsync(lastfmArtist.musicBrainzId, Constants.cachedArtworkMaximumSize);
+            } catch (e: unknown) {
+                this.logger.error(e, 'Could not get artistImageUrl', 'ArtistArtworkGetter', 'getOnlineArtworkAsync');
+            }
+
+            if (!StringUtils.isNullOrWhiteSpace(artistImageUrl)) {
                 let artworkData: Buffer;
 
                 try {
-                    artworkData = await this.imageProcessor.convertOnlineImageToBufferAsync(lastfmArtist.largestImage());
+                    artworkData = await this.imageProcessor.convertOnlineImageToBufferAsync(artistImageUrl);
 
-                    this.logger.info(
-                        `Downloaded online artwork for '${artistName}'`,
-                        'ArtistArtworkGetter',
-                        'getArtistArtworkAsync',
-                    );
+                    this.logger.info(`Downloaded online artwork for '${artistName}'`, 'ArtistArtworkGetter', 'getArtistArtworkAsync');
 
                     return artworkData;
                 } catch (e: unknown) {
                     this.logger.error(
                         e,
-                        `Could not convert file '${lastfmArtist.largestImage()}' to data`,
+                        `Could not convert file '${artistImageUrl}' to data`,
                         'ArtistArtworkGetter',
                         'getArtistArtworkAsync',
                     );
