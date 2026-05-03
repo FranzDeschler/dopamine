@@ -38,7 +38,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             WHERE Artist=?;`,
         );
 
-        return statement.get(artist);
+        return statement.get(artist.toLowerCase());
     }
 
     public getNumberOfArtistArtwork(): number {
