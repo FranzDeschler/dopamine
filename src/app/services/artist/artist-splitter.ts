@@ -9,10 +9,11 @@ export class ArtistSplitter {
         private settings: SettingsBase,
     ) {}
 
-    public splitArtists(artists: string[]): Set<string> {
+    public splitArtists(artists: string[]): string[] {
         const separators: string[] = CollectionUtils.fromString(this.settings.artistSplitSeparators);
         const exceptions: string[] = CollectionUtils.fromString(this.settings.artistSplitExceptions);
 
+        const returnArtists: string[] = [];
         const uniqueArtistNames: Set<string> = new Set();
 
         for (const artist of artists) {
@@ -21,16 +22,18 @@ export class ArtistSplitter {
                 for (const splitArtist of splitArtists) {
                     if (!uniqueArtistNames.has(splitArtist.toLowerCase())) {
                         uniqueArtistNames.add(splitArtist.toLowerCase());
+                        returnArtists.push(splitArtist);
                     }
                 }
             } else {
                 if (!uniqueArtistNames.has(artist.toLowerCase())) {
                     uniqueArtistNames.add(artist.toLowerCase());
+                    returnArtists.push(artist);
                 }
             }
         }
 
-        return uniqueArtistNames;
+        return returnArtists;
     }
 
     private splitArtist(artist: string, separators: string[], exceptions: string[]): string[] {

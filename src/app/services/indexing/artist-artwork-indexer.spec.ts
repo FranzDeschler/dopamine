@@ -4,6 +4,7 @@ import { ArtistArtworkAdder } from './artist-artwork-adder';
 import { ArtistArtworkIndexer } from './artist-artwork-indexer';
 import { ArtistArtworkRemover } from './artist-artwork-remover';
 import { NotificationServiceBase } from '../notification/notification.service.base';
+import { SettingsMock } from '../../testing/settings-mock';
 
 describe('ArtistArtworkIndexer', () => {
     let artistArtworkRemoverMock: IMock<ArtistArtworkRemover>;
@@ -11,21 +12,40 @@ describe('ArtistArtworkIndexer', () => {
     let notificationServiceMock: IMock<NotificationServiceBase>;
     let loggerMock: IMock<Logger>;
     let artistArtworkIndexer: ArtistArtworkIndexer;
+    let settingsMock: SettingsMock;
 
     beforeEach(() => {
         artistArtworkRemoverMock = Mock.ofType<ArtistArtworkRemover>();
         artistArtworkAdderMock = Mock.ofType<ArtistArtworkAdder>();
         notificationServiceMock = Mock.ofType<NotificationServiceBase>();
         loggerMock = Mock.ofType<Logger>();
+        settingsMock = new SettingsMock();
         artistArtworkIndexer = new ArtistArtworkIndexer(
             artistArtworkRemoverMock.object,
             artistArtworkAdderMock.object,
             notificationServiceMock.object,
             loggerMock.object,
+            settingsMock,
         );
+
+        settingsMock.showArtistImages = true;
     });
 
     describe('indexArtistArtworkAsync', () => {
+        it('should do nothing if showing artist images is disabled in the settings', async () => {
+            // Arrange
+            settingsMock.showArtistImages = false;
+
+            // Act
+            await artistArtworkIndexer.indexArtistArtworkAsync();
+
+            // Assert
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.never());
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.never());
+            artistArtworkAdderMock.verify((x) => x.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.never());
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.never());
+        });
+
         it('should remove artwork that has no track', async () => {
             // Arrange, Act
             await artistArtworkIndexer.indexArtistArtworkAsync();

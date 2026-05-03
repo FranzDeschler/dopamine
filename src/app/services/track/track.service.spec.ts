@@ -92,6 +92,10 @@ describe('TrackService', () => {
         dateTimeMock.setup((x) => x.convertDateToTicks(It.isAny())).returns(() => 123456);
     });
 
+    function createArtistModel(artistName: string): ArtistModel {
+        return new ArtistModel(artistName, 'artist-artworkId', translatorServiceMock.object, applicationPathsMock.object);
+    }
+
     function createService(): TrackService {
         return new TrackService(
             artistServiceMock.object,
@@ -287,8 +291,8 @@ describe('TrackService', () => {
 
         it('should return a TrackModels for track artists only if artistType is trackArtists', () => {
             // Arrange
-            const artist3: ArtistModel = new ArtistModel('artist3', translatorServiceMock.object, applicationPathsMock.object);
-            const artist4: ArtistModel = new ArtistModel('artist4', translatorServiceMock.object, applicationPathsMock.object);
+            const artist3: ArtistModel = createArtistModel('artist3');
+            const artist4: ArtistModel = createArtistModel('artist4');
             artistServiceMock.setup((x) => x.getSourceArtists([artist3, artist4])).returns(() => ['Source artist3', 'Source artist4']);
             const service: TrackService = createService();
 
@@ -303,8 +307,8 @@ describe('TrackService', () => {
 
         it('should return a TrackModels for album artists only if artistType is albumArtists', () => {
             // Arrange
-            const artist3: ArtistModel = new ArtistModel('Artist3', translatorServiceMock.object, applicationPathsMock.object);
-            const artist4: ArtistModel = new ArtistModel('Artist4', translatorServiceMock.object, applicationPathsMock.object);
+            const artist3: ArtistModel = createArtistModel('Artist3');
+            const artist4: ArtistModel = createArtistModel('Artist4');
             artistServiceMock.setup((x) => x.getSourceArtists([artist3, artist4])).returns(() => ['Source artist3', 'Source artist4']);
             const service: TrackService = createService();
 
@@ -319,8 +323,8 @@ describe('TrackService', () => {
 
         it('should return a TrackModels for both track and album artists if artistType is allArtists', () => {
             // Arrange
-            const artist3: ArtistModel = new ArtistModel('Artist3', translatorServiceMock.object, applicationPathsMock.object);
-            const artist4: ArtistModel = new ArtistModel('Artist4', translatorServiceMock.object, applicationPathsMock.object);
+            const artist3: ArtistModel = createArtistModel('Artist3');
+            const artist4: ArtistModel = createArtistModel('Artist4');
             artistServiceMock.setup((x) => x.getSourceArtists([artist3, artist4])).returns(() => ['Source artist3', 'Source artist4']);
             const service: TrackService = createService();
 

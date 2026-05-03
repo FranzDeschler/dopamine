@@ -1,14 +1,16 @@
+import { Injectable } from '@angular/core';
 import { ArtistModel } from './artist-model';
 import { ApplicationPaths } from '../../common/application/application-paths';
-import { TranslatorService } from '../translator/translator.service';
+import { TranslatorServiceBase } from '../translator/translator.service.base';
 
+@Injectable()
 export class ArtistModelFactory {
     public constructor(
-        private translatorService: TranslatorService,
+        private translatorService: TranslatorServiceBase,
         private applicationPaths: ApplicationPaths,
     ) {}
 
-    public create(artistName: string, artworkId: string | undefined): ArtistModel {
+    public create(artistName: string, artworkId?: string | undefined): ArtistModel {
         return new ArtistModel(artistName, artworkId, this.translatorService, this.applicationPaths);
     }
 }

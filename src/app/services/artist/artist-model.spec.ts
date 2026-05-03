@@ -151,7 +151,9 @@ describe('ArtistModel', () => {
         it('should return full artwork path if artistData.artworkId is not undefined, empty or space.', () => {
             // Arrange
             artistModel.artworkId = 'dummy';
-            applicationPathsMock.setup((x) => x.coverArtFullPath('dummy')).returns(() => '/root/directory/dummy');
+            applicationPathsMock
+                .setup((x) => x.artistArtFullPath('dummy'))
+                .returns(() => '/root/directory/dummy');
 
             // Act
             const artworkPath: string = artistModel.artworkPath;

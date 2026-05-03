@@ -130,8 +130,8 @@ describe('ArtistBrowserComponent', () => {
         applicationServiceMock.setup((x) => x.mouseButtonReleased$).returns(() => applicationService_mouseButtonReleased$);
 
         artistsPersisterMock = Mock.ofType<ArtistsPersister>();
-        artist1 = new ArtistModel('One artist', translatorServiceMock.object, applicationPathsMock.object);
-        artist2 = new ArtistModel('Two artist', translatorServiceMock.object, applicationPathsMock.object);
+        artist1 = new ArtistModel('One artist', undefined, translatorServiceMock.object, applicationPathsMock.object);
+        artist2 = new ArtistModel('Two artist', undefined, translatorServiceMock.object, applicationPathsMock.object);
 
         artistSorterMock.setup((x) => x.sortAscending([])).returns(() => []);
         artistSorterMock.setup((x) => x.sortDescending([])).returns(() => []);

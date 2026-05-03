@@ -6,7 +6,6 @@ import { FileAccessBase } from '../../common/io/file-access.base';
 import { ArtistArtwork } from '../../data/entities/artist-artwork';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { ApplicationPaths } from '../../common/application/application-paths';
-import { SettingsMock } from '../../testing/settings-mock';
 
 
 const artistKey1 = 'artistKey1';
@@ -26,14 +25,12 @@ describe('ArtistArtworkRemover', () => {
     let loggerMock: IMock<Logger>;
     let notificationServiceMock: IMock<NotificationServiceBase>;
     let artistArtworkRemover: ArtistArtworkRemover;
-    let settingsMock: any;
 
     beforeEach(() => {
         artistArtworkRepositoryMock = Mock.ofType<ArtistArtworkRepositoryBase>();
         fileAccessMock = Mock.ofType<FileAccessBase>();
         loggerMock = Mock.ofType<Logger>();
         notificationServiceMock = Mock.ofType<NotificationServiceBase>();
-        settingsMock = new SettingsMock();
         applicationPathsMock = Mock.ofType<ApplicationPaths>();
 
         artistArtworkRemover = new ArtistArtworkRemover(
@@ -41,7 +38,6 @@ describe('ArtistArtworkRemover', () => {
             fileAccessMock.object,
             applicationPathsMock.object,
             notificationServiceMock.object,
-            settingsMock,
             loggerMock.object,
         );
 

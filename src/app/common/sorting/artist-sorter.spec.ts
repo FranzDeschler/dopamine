@@ -19,30 +19,26 @@ describe('ArtistSorter', () => {
     let artistModel11: ArtistModel;
     let artistModel12: ArtistModel;
 
-    let translatorServiceMock: IMock<TranslatorServiceBase>;
     let loggerMock: IMock<Logger>;
-    let applicationPathsMock: IMock<ApplicationPaths>;
 
     let artistSorter: ArtistSorter;
     let artists: ArtistModel[];
 
     beforeEach(() => {
-        translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
         loggerMock = Mock.ofType<Logger>();
-        applicationPathsMock = Mock.ofType<ApplicationPaths>();
 
-        artistModel1 = new ArtistModel('Artist1', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel2 = new ArtistModel('Artist2', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel3 = new ArtistModel('Artist3', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel4 = new ArtistModel('Artist4', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel5 = new ArtistModel('Artist5', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel6 = new ArtistModel('Artist6', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel7 = new ArtistModel('Artist7', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel8 = new ArtistModel('Artist8', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel9 = new ArtistModel('Artist9', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel10 = new ArtistModel('Artist10', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel11 = new ArtistModel('', translatorServiceMock.object, applicationPathsMock.object);
-        artistModel12 = new ArtistModel('Артист', translatorServiceMock.object, applicationPathsMock.object);
+        artistModel1 = createArtistModel('Artist1');
+        artistModel2 = createArtistModel('Artist2');
+        artistModel3 = createArtistModel('Artist3');
+        artistModel4 = createArtistModel('Artist4');
+        artistModel5 = createArtistModel('Artist5');
+        artistModel6 = createArtistModel('Artist6');
+        artistModel7 = createArtistModel('Artist7');
+        artistModel8 = createArtistModel('Artist8');
+        artistModel9 = createArtistModel('Artist9');
+        artistModel10 = createArtistModel('Artist10');
+        artistModel11 = createArtistModel('');
+        artistModel12 = createArtistModel('Артист');
 
         artists = [
             artistModel2,
@@ -61,6 +57,10 @@ describe('ArtistSorter', () => {
 
         artistSorter = new ArtistSorter(loggerMock.object);
     });
+
+    function createArtistModel(artistName: string): ArtistModel {
+        return new ArtistModel(artistName, undefined, Mock.ofType<TranslatorServiceBase>().object, Mock.ofType<ApplicationPaths>().object);
+    }
 
     describe('sortAscending', () => {
         it('should return an empty collection when undefined is provided', () => {

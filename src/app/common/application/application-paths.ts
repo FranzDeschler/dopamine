@@ -31,8 +31,8 @@ export class ApplicationPaths {
         return this._artistArtCacheFullPath;
     }
 
-    public artistArtFullPath(artistName: string): string {
-        return this.fileAccess.combinePath([this._artistArtCacheFullPath, `${artistName}.jpg`]);
+    public artistArtFullPath(artworkId: string): string {
+        return this.fileAccess.combinePath([this._artistArtCacheFullPath, `${artworkId}.jpg`]);
     }
 
     public themesDirectoryFullPath(): string {

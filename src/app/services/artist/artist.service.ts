@@ -55,12 +55,7 @@ export class ArtistService implements ArtistServiceBase {
         timer.start();
 
         this.sourceArtists = artists;
-        const splitArtists: Set<string> = this.artistSplitter.splitArtists(artists);
-        const artistModels: ArtistModel[] = [];
-        for (const artist of splitArtists) {
-            const artwork: ArtistArtwork | undefined = this.getArtwork(artist);
-            artistModels.push(this.artistModelFactory.create(artist, artwork?.artworkId));
-        }
+        const artistModels: ArtistModel[] = this.splitArtists(artists);
 
         timer.stop();
 
@@ -69,9 +64,19 @@ export class ArtistService implements ArtistServiceBase {
         return artistModels;
     }
 
+    private splitArtists(artists: string[]): ArtistModel[] {
+        const splitArtists: string[] = this.artistSplitter.splitArtists(artists);
+        const artistModels: ArtistModel[] = [];
+        for (const artist of splitArtists) {
+            const artwork: ArtistArtwork | undefined = this.getArtwork(artist);
+            artistModels.push(this.artistModelFactory.create(artist, artwork?.artworkId));
+        }
+        return artistModels;
+    }
+
     private getArtwork(artist: string): ArtistArtwork | undefined {
         try {
-            return this.artistArtworkRepository.getArtistArtworkForArtist(artist);
+            return this.artistArtworkRepository.getArtistArtworkForArtist(artist.toLowerCase());
         } catch (e: unknown) {
             this.logger.error(e, `Cannot load artwork for artist '${artist}'`, 'ArtistService', 'getArtwork');
         }

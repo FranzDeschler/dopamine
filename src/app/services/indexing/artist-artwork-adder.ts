@@ -40,10 +40,10 @@ export class ArtistArtworkAdder {
             const artistsToSplit: string[] = artistsThatNeedsArtworkIndexing
                 .filter((artistData: ArtistData): boolean => !StringUtils.isNullOrWhiteSpace(artistData.artists))
                 .flatMap((artistData: ArtistData): string[] => DataDelimiter.fromDelimitedString(artistData.artists));
-            const uniqueArtists: Set<string> = this.artistSplitter.splitArtists(artistsToSplit);
+            const uniqueArtists: string[] = this.artistSplitter.splitArtists(artistsToSplit);
 
             this.logger.info(
-                `Found ${uniqueArtists.size} unique artists that needs indexing`,
+                `Found ${uniqueArtists.length} unique artists that needs indexing`,
                 'ArtistArtworkAdder',
                 'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
             );
@@ -93,8 +93,8 @@ export class ArtistArtworkAdder {
             return;
         }
 
-        this.trackRepository.disableNeedsArtistArtworkIndexing(artist);
         const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
         this.artistArtworkRepository.addArtistArtwork(newArtistArtwork);
+        this.trackRepository.disableNeedsArtistArtworkIndexing(artist);
     }
 }

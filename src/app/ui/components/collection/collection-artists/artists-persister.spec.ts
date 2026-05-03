@@ -11,8 +11,6 @@ import { ApplicationPaths } from '../../../../common/application/application-pat
 describe('ArtistsPersister', () => {
     let settingsStub: any;
     let loggerMock: IMock<Logger>;
-    let translatorServiceMock: IMock<TranslatorServiceBase>;
-    let applicationPathsMock: IMock<ApplicationPaths>;
 
     let persister: ArtistsPersister;
 
@@ -25,16 +23,18 @@ describe('ArtistsPersister', () => {
     beforeEach(() => {
         settingsStub = { artistsTabSelectedArtist: '', artistsTabSelectedArtistOrder: '', artistsTabSelectedArtistType: '' };
         loggerMock = Mock.ofType<Logger>();
-        translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
-        applicationPathsMock = Mock.ofType<ApplicationPaths>();
         persister = new ArtistsPersister(settingsStub, loggerMock.object);
 
         subscription = new Subscription();
 
-        artist1 = new ArtistModel('artist 1', translatorServiceMock.object, applicationPathsMock.object);
-        artist2 = new ArtistModel('artist 2', translatorServiceMock.object, applicationPathsMock.object);
-        artist3 = new ArtistModel('artist 3', translatorServiceMock.object, applicationPathsMock.object);
+        artist1 = createArtistModel('artist 1');
+        artist2 = createArtistModel('artist 2');
+        artist3 = createArtistModel('artist 3');
     });
+
+    function createArtistModel(artistName: string): ArtistModel {
+        return new ArtistModel(artistName, undefined, Mock.ofType<TranslatorServiceBase>().object, Mock.ofType<ApplicationPaths>().object);
+    }
 
     describe('constructor', () => {
         it('should create', () => {
