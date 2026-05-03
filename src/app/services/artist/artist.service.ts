@@ -11,8 +11,8 @@ import { Logger } from '../../common/logger';
 import { CollectionUtils } from '../../common/utils/collections-utils';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { ArtistModelFactory } from './artist-model-factory';
-import { ArtistArtworkRepository } from '../../data/repositories/artist-artwork-repository';
 import { ArtistArtwork } from '../../data/entities/artist-artwork';
+import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artwork-repository.base';
 
 @Injectable()
 export class ArtistService implements ArtistServiceBase {
@@ -20,7 +20,7 @@ export class ArtistService implements ArtistServiceBase {
     public constructor(
         private artistSplitter: ArtistSplitter,
         private trackRepository: TrackRepositoryBase,
-        private artistArtworkRepository: ArtistArtworkRepository,
+        private artistArtworkRepository: ArtistArtworkRepositoryBase,
         private artistModelFactory: ArtistModelFactory,
         private settings: SettingsBase,
         private logger: Logger,

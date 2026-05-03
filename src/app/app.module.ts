@@ -306,6 +306,7 @@ import { ArtistArtworkRepository } from './data/repositories/artist-artwork-repo
 import { OnlineArtistArtworkGetter } from './services/indexing/online-artist-artwork-getter';
 import { ArtistArtworkCacheServiceBase } from './services/artist-artwork-cache/artist-artwork-cache.service.base';
 import { ArtistArtworkCacheService } from './services/artist-artwork-cache/artist-artwork-cache.service';
+import { ArtistModelFactory } from './services/artist/artist-model-factory';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -585,6 +586,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         ExternalArtworkPathGetter,
         OnlineArtistArtworkGetter,
         IndexingService,
+        ArtistModelFactory,
         { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: CustomTooltipDefaults },
         { provide: FileAccessBase, useClass: FileAccess },
         { provide: TrackRepositoryBase, useClass: TrackRepository },
