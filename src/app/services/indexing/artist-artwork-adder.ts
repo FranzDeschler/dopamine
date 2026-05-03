@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { ArtistArtwork } from '../../data/entities/artist-artwork';
-import { ArtistData } from '../../data/entities/artist-data';
-import { Track } from '../../data/entities/track';
 import { Logger } from '../../common/logger';
-import { IFileMetadata } from '../../common/metadata/i-file-metadata';
 import { ArtistArtworkCacheId } from '../artist-artwork-cache/artist-artwork-cache-id';
 import { OnlineArtistArtworkGetter } from './online-artist-artwork-getter';
 import { ArtistArtworkCacheServiceBase } from '../artist-artwork-cache/artist-artwork-cache.service.base';
 import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artwork-repository.base';
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
-import { FileMetadataFactoryBase } from '../../common/metadata/file-metadata.factory.base';
 import { NotificationServiceBase } from '../notification/notification.service.base';
+import { DataDelimiter } from '../../data/data-delimiter';
+import { ArtistSplitter } from '../artist/artist-splitter';
+import { StringUtils } from '../../common/utils/string-utils';
+import { ArtistData } from '../../data/entities/artist-data';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkAdder {
@@ -18,17 +18,16 @@ export class ArtistArtworkAdder {
         private artistArtworkCacheService: ArtistArtworkCacheServiceBase,
         private artistArtworkRepository: ArtistArtworkRepositoryBase,
         private trackRepository: TrackRepositoryBase,
-        private fileMetadataFactory: FileMetadataFactoryBase,
         private notificationService: NotificationServiceBase,
         private logger: Logger,
         private artistArtworkGetter: OnlineArtistArtworkGetter,
+        private artistSplitter: ArtistSplitter,
     ) {}
 
     public async addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(): Promise<void> {
         try {
-            const artistDataThatNeedsIndexing: ArtistData[] = this.trackRepository.getArtistDataThatNeedsIndexing() ?? [];
-
-            if (artistDataThatNeedsIndexing.length === 0) {
+            const artistsThatNeedsArtworkIndexing: ArtistData[] = this.trackRepository.getArtistDataThatNeedsArtistArtworkIndexing() ?? [];
+            if (artistsThatNeedsArtworkIndexing.length === 0) {
                 this.logger.info(
                     `Found no artist data that needs indexing`,
                     'ArtistArtworkAdder',
@@ -38,21 +37,26 @@ export class ArtistArtworkAdder {
                 return;
             }
 
+            const artistsToSplit: string[] = artistsThatNeedsArtworkIndexing
+                .filter((artistData: ArtistData): boolean => !StringUtils.isNullOrWhiteSpace(artistData.artists))
+                .flatMap((artistData: ArtistData): string[] => DataDelimiter.fromDelimitedString(artistData.artists));
+            const uniqueArtists: Set<string> = this.artistSplitter.splitArtists(artistsToSplit);
+
             this.logger.info(
-                `Found ${artistDataThatNeedsIndexing.length} artist data that needs indexing`,
+                `Found ${uniqueArtists.size} unique artists that needs indexing`,
                 'ArtistArtworkAdder',
                 'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
             );
 
             await this.showNotificationTheFirstTimeIndexingRuns();
 
-            for (const artistData of artistDataThatNeedsIndexing) {
+            for (const artist of uniqueArtists) {
                 try {
-                    await this.addArtistArtworkAsync(artistData.artistKey);
+                    await this.addArtistArtworkAsync(artist);
                 } catch (e: unknown) {
                     this.logger.error(
                         e,
-                        `Could not add artist artwork for artistKey=${artistData.artistKey}`,
+                        `Could not add artist artwork for '${artist}'`,
                         'ArtistArtworkAdder',
                         'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
                     );
@@ -75,26 +79,8 @@ export class ArtistArtworkAdder {
         }
     }
 
-    private async addArtistArtworkAsync(artistKey: string): Promise<void> {
-        const track: Track | undefined = this.trackRepository.getLastModifiedTrackForArtistKeyAsync(artistKey);
-
-        if (track == undefined) {
-            return;
-        }
-
-        let artistArtwork: Buffer | undefined;
-
-        try {
-            const fileMetadata: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
-            artistArtwork = await this.artistArtworkGetter.getOnlineArtworkAsync(fileMetadata);
-        } catch (e: unknown) {
-            this.logger.error(
-                e,
-                `Could not create file metadata for path='${track.path}'`,
-                'ArtistArtworkAdder',
-                'addArtistArtworkAsync'
-            );
-        }
+    private async addArtistArtworkAsync(artist: string): Promise<void> {
+        const artistArtwork: Buffer | undefined = await this.artistArtworkGetter.getOnlineArtworkAsync(artist);
 
         if (artistArtwork == undefined) {
             return;
@@ -107,8 +93,8 @@ export class ArtistArtworkAdder {
             return;
         }
 
-        this.trackRepository.disableNeedsArtistArtworkIndexing(artistKey);
-        const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artistKey, artistArtworkCacheId.id);
+        this.trackRepository.disableNeedsArtistArtworkIndexing(artist);
+        const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
         this.artistArtworkRepository.addArtistArtwork(newArtistArtwork);
     }
 }

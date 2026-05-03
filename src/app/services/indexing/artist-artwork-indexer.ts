@@ -4,6 +4,7 @@ import { Timer } from '../../common/scheduling/timer';
 import { ArtistArtworkAdder } from './artist-artwork-adder';
 import { ArtistArtworkRemover } from './artist-artwork-remover';
 import { NotificationServiceBase } from '../notification/notification.service.base';
+import { SettingsBase } from '../../common/settings/settings.base';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkIndexer {
@@ -12,9 +13,14 @@ export class ArtistArtworkIndexer {
         private artistArtworkAdder: ArtistArtworkAdder,
         private notificationService: NotificationServiceBase,
         private logger: Logger,
+        private settings: SettingsBase,
     ) {}
 
     public async indexArtistArtworkAsync(): Promise<void> {
+        if (!this.settings.showArtistImages) {
+            return;
+        }
+
         this.logger.info('+++ STARTED INDEXING ARTIST ARTWORK +++', 'ArtistArtworkIndexer', 'indexArtistArtworkAsync');
 
         const timer: Timer = new Timer();

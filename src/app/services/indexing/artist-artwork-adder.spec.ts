@@ -95,13 +95,13 @@ describe('ArtistArtworkAdder', () => {
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
 
             // Assert
-            trackRepositoryMock.verify((x) => x.getArtistDataThatNeedsIndexing(), Times.exactly(1));
+            trackRepositoryMock.verify((x) => x.getArtistDataThatNeedsArtistArtworkIndexing(), Times.exactly(1));
         });
 
         it('should notify that artist artwork is being updated if it is the first time that indexing runs', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             artistArtworkRepositoryMock
                 .setup((x) => x.getNumberOfArtistArtwork())
@@ -117,7 +117,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not notify that artist artwork is being updated if it is not the first time that indexing runs', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             artistArtworkRepositoryMock
                 .setup((x) => x.getNumberOfArtistArtwork())
@@ -133,7 +133,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not get the last modified track for an artist key if there is no artist data that needs indexing', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => []);
 
             // Act
@@ -146,7 +146,7 @@ describe('ArtistArtworkAdder', () => {
         it('should get the last modified track for an artist key if there is artist data that needs indexing', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
 
             // Act
@@ -159,7 +159,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not create a read-only file metadata if there is no last modified track for the given artist key', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -175,7 +175,7 @@ describe('ArtistArtworkAdder', () => {
         it('should create a read-only file metadata if there is a last modified track for the given artist key', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -191,7 +191,7 @@ describe('ArtistArtworkAdder', () => {
         it('should get artist artwork if a read-only file metadata was created', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -210,7 +210,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not add artist artwork to the cache if no artist artwork data was found', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -232,7 +232,7 @@ describe('ArtistArtworkAdder', () => {
         it('should add artist artwork to the cache if artist artwork data was found', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -254,7 +254,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not disable artist artwork indexing for the given artist key if the artwork was not added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -276,7 +276,7 @@ describe('ArtistArtworkAdder', () => {
         it('should disable artist artwork indexing for the given artist key if the artwork was added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -303,7 +303,7 @@ describe('ArtistArtworkAdder', () => {
         it('should not add artist artwork to the database if the artwork was not added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))
@@ -325,7 +325,7 @@ describe('ArtistArtworkAdder', () => {
         it('should add artist artwork to the database if the artwork was added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsIndexing())
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
                 .returns(() => [artistData]);
             trackRepositoryMock
                 .setup((x) => x.getLastModifiedTrackForArtistKeyAsync(artistKey))

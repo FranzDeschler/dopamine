@@ -6,7 +6,6 @@ import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artw
 import { FileAccessBase } from '../../common/io/file-access.base';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { ApplicationPaths } from '../../common/application/application-paths';
-import { SettingsBase } from '../../common/settings/settings.base';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkRemover {
@@ -15,7 +14,6 @@ export class ArtistArtworkRemover {
         private fileAccess: FileAccessBase,
         private applicationPaths: ApplicationPaths,
         private notificationService: NotificationServiceBase,
-        private settings: SettingsBase,
         private logger: Logger,
     ) {}
 
@@ -121,14 +119,6 @@ export class ArtistArtworkRemover {
                 'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
             );
 
-            const allArtworkIdsInDatabase: string[] = allArtistArtworkInDatabase.map((x) => x.artworkId);
-
-            this.logger.info(
-                `Found ${allArtworkIdsInDatabase.length} artworkIds in the database`,
-                'ArtistArtworkRemover',
-                'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
-            );
-
             const artistArtCacheFullPath: string = this.applicationPaths.artistArtCacheFullPath();
             const allArtistArtworkFilePaths: string[] = await this.fileAccess.getFilesInDirectoryAsync(artistArtCacheFullPath);
 
@@ -138,6 +128,7 @@ export class ArtistArtworkRemover {
                 'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
             );
 
+            const allArtworkIdsInDatabase: string[] = allArtistArtworkInDatabase.map((x) => x.artworkId);
             let numberOfRemovedArtistArtwork: number = 0;
 
             for (const artistArtworkFilePath of allArtistArtworkFilePaths) {
