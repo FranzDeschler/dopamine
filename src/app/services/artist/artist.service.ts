@@ -76,7 +76,7 @@ export class ArtistService implements ArtistServiceBase {
 
     private getArtwork(artist: string): ArtistArtwork | undefined {
         try {
-            return this.artistArtworkRepository.getArtistArtworkForArtist(artist.toLowerCase());
+            return this.artistArtworkRepository.getArtistArtworkForArtist(artist);
         } catch (e: unknown) {
             this.logger.error(e, `Cannot load artwork for artist '${artist}'`, 'ArtistService', 'getArtwork');
         }

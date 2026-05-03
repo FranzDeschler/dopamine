@@ -1,5 +1,4 @@
 import { StringUtils } from '../common/utils/string-utils';
-import { Constants } from '../common/application/constants';
 
 export class ClauseCreator {
     public static escapeQuotes(sourceString: string): string {
@@ -47,7 +46,7 @@ export class ClauseCreator {
 
         for (const column of targetColumns) {
             orClauses.push(
-                `(LOWER(${sourceColumn}) LIKE '%${Constants.columnValueDelimiter}' || LOWER(${column}) || '${Constants.columnValueDelimiter}%')`,
+                `(LOWER(${sourceColumn}) LIKE '%' || LOWER(${column}) || '%')`,
             );
         }
 

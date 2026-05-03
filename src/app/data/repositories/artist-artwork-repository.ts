@@ -15,7 +15,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
         const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
-        statement.run(artistArtwork.artist, artistArtwork.artworkId);
+        statement.run(artistArtwork.artist.toLowerCase(), artistArtwork.artworkId);
     }
 
     public getAllArtistArtwork(): ArtistArtwork[] | undefined {
@@ -50,9 +50,9 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public getNumberOfArtistArtworkThatHasNoTrack(): number {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork
-            FROM ArtistArtwork a
+            FROM ArtistArtwork as a
             WHERE NOT EXISTS (
-                SELECT 1 FROM Track t
+                SELECT 1 FROM Track as t
                 WHERE ${this.trackArtistLikeArtworkArtist()}
             );`,
         );
@@ -63,9 +63,9 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public deleteArtistArtworkThatHasNoTrack(): number {
         const statement = this.database.prepare(
-            `DELETE FROM ArtistArtwork a 
+            `DELETE FROM ArtistArtwork as a 
              WHERE NOT EXISTS (
-                SELECT 1 FROM Track t
+                SELECT 1 FROM Track as t
                 WHERE ${this.trackArtistLikeArtworkArtist()}
              );`,
         );
@@ -77,8 +77,8 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public getNumberOfArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork 
-             FROM ArtistArtwork a
-             LEFT JOIN Track t ON ${this.trackArtistLikeArtworkArtist()}
+             FROM ArtistArtwork as a
+             LEFT JOIN Track as t ON ${this.trackArtistLikeArtworkArtist()}
              WHERE t.NeedsArtistArtworkIndexing = 1;`,
         );
 
@@ -88,9 +88,9 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public deleteArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number {
         const statement = this.database.prepare(
-            `DELETE FROM ArtistArtwork a
+            `DELETE FROM ArtistArtwork as a
              WHERE EXISTS (
-                 SELECT 1 FROM Track t
+                 SELECT 1 FROM Track as t
                  WHERE ${this.trackArtistLikeArtworkArtist()}
                  AND t.NeedsArtistArtworkIndexing = 1
              );`,
