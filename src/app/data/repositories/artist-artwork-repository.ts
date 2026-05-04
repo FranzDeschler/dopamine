@@ -7,11 +7,15 @@ import { Injectable } from '@angular/core';
 import { DatabaseFactory } from '../database-factory';
 import { ArtistArtwork } from '../entities/artist-artwork';
 import { ArtistArtworkRepositoryBase } from './artist-artwork-repository.base';
+import { SettingsBase } from '../../common/settings/settings.base';
 import { ClauseCreator } from '../clause-creator';
 
 @Injectable()
 export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
-    public constructor(private databaseFactory: DatabaseFactory) {}
+    public constructor(
+        private databaseFactory: DatabaseFactory,
+        private settings: SettingsBase,
+    ) {}
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
         const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
@@ -23,7 +27,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             `SELECT ArtistArtworkID as artistArtworkId, 
                     Artist as artist, 
                     ArtworkID as artworkId 
-            FROM ArtistArtwork;`
+            FROM ArtistArtwork;`,
         );
 
         return statement.all();
@@ -105,6 +109,14 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     }
 
     private trackArtistLikeArtworkArtist(): string {
-        return ClauseCreator.createOrLikeColumnClause('t.Artists', 'a.Artist');
+        /*
+        LOWER(t.Artists) = ';' || a.Artist || ';'
+        OR LOWER(t.Artists) LIKE '% feat. ' || a.Artist || ';%'
+        OR LOWER(t.Artists) LIKE '% ft. ' || a.Artist || ';%'
+        OR LOWER(t.Artists) LIKE '%;' || a.Artist || ' feat. %'
+        OR LOWER(t.Artists) LIKE '%;' || a.Artist || ' ft. %'
+         */
+        const artistSplitSeparators: string = this.settings.artistSplitSeparators;
+        return ClauseCreator.createOrLikeSplitArtistClause('t.Artists', 'a.Artist', artistSplitSeparators);
     }
 }

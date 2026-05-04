@@ -1,4 +1,4 @@
-import { IMock, Mock, Times } from 'typemoq';
+import { IMock, It, Mock, Times } from 'typemoq';
 import { ArtistModel } from './artist-model';
 import { ArtistType } from './artist-type';
 import { ArtistService } from './artist.service';
@@ -305,13 +305,13 @@ describe('ArtistService', () => {
             trackRepositoryMock.setup((x) => x.getAlbumArtistData()).returns(() => albumArtistDatas);
 
             artistArtworkRepositoryMock
-                .setup((x) => x.getArtistArtworkForArtist('aerosmith'))
+                .setup((x) => x.getArtistArtworkForArtist(It.is((arg: string) => arg.toLowerCase() === 'aerosmith')))
                 .returns(() => new ArtistArtwork('aerosmith', 'artwork-id-1'));
             artistArtworkRepositoryMock
-                .setup((x) => x.getArtistArtworkForArtist('alanis morissette'))
+                .setup((x) => x.getArtistArtworkForArtist('Alanis Morissette'))
                 .returns(() => new ArtistArtwork('alanis morissette', 'artwork-id-2'));
             artistArtworkRepositoryMock
-                .setup((x) => x.getArtistArtworkForArtist('bon jovi'))
+                .setup((x) => x.getArtistArtworkForArtist('Bon Jovi'))
                 .returns(() => new ArtistArtwork('bon jovi', 'artwork-id-3'));
 
             const service: ArtistService = createService();

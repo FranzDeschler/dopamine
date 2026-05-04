@@ -37,31 +37,18 @@ export class ArtistArtworkAdder {
                 return;
             }
 
-            const artistsToSplit: string[] = artistsThatNeedsArtworkIndexing
-                .filter((artistData: ArtistData): boolean => !StringUtils.isNullOrWhiteSpace(artistData.artists))
-                .flatMap((artistData: ArtistData): string[] => DataDelimiter.fromDelimitedString(artistData.artists));
-            const uniqueArtists: string[] = this.artistSplitter.splitArtists(artistsToSplit);
+            const rawArtistsToIndividualArtistsMap: Map<string, string[]> =
+                this.splitToIndividualArtists(artistsThatNeedsArtworkIndexing);
 
+            const numberOfUniqueArtists = this.countUniqueArtists(rawArtistsToIndividualArtistsMap);
             this.logger.info(
-                `Found ${uniqueArtists.length} unique artists that needs indexing`,
+                `Found ${numberOfUniqueArtists} unique artists that needs indexing`,
                 'ArtistArtworkAdder',
                 'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
             );
 
             await this.showNotificationTheFirstTimeIndexingRuns();
-
-            for (const artist of uniqueArtists) {
-                try {
-                    await this.addArtistArtworkAsync(artist);
-                } catch (e: unknown) {
-                    this.logger.error(
-                        e,
-                        `Could not add artist artwork for '${artist}'`,
-                        'ArtistArtworkAdder',
-                        'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-                    );
-                }
-            }
+            await this.addArtistArtworkAsync(rawArtistsToIndividualArtistsMap);
         } catch (e: unknown) {
             this.logger.error(
                 e,
@@ -79,22 +66,76 @@ export class ArtistArtworkAdder {
         }
     }
 
-    private async addArtistArtworkAsync(artist: string): Promise<void> {
+    private async addArtistArtworkAsync(rawArtistsToIndividualArtistsMap: Map<string, string[]>): Promise<void> {
+        const processedArtists: string[] = [];
+        for (const [rawArtists, individualArtists] of rawArtistsToIndividualArtistsMap) {
+            let success: boolean = true;
+            for (const artist of individualArtists) {
+                if (processedArtists.includes(artist.toLowerCase())) {
+                    continue;
+                }
+
+                try {
+                    success &&= await this.addArtistArtworkForIndividualArtistAsync(artist);
+                } catch (e: unknown) {
+                    success = false;
+                    this.logger.error(
+                        e,
+                        `Could not add artist artwork for '${rawArtists}'`,
+                        'ArtistArtworkAdder',
+                        'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
+                    );
+                }
+
+                processedArtists.push(artist.toLowerCase());
+            }
+
+            if (success) {
+                this.trackRepository.disableNeedsArtistArtworkIndexing(rawArtists);
+            }
+        }
+    }
+
+    private async addArtistArtworkForIndividualArtistAsync(artist: string): Promise<boolean> {
         const artistArtwork: Buffer | undefined = await this.artistArtworkGetter.getOnlineArtworkAsync(artist);
 
         if (artistArtwork == undefined) {
-            return;
+            return false;
         }
 
         const artistArtworkCacheId: ArtistArtworkCacheId | undefined =
             await this.artistArtworkCacheService.addArtworkDataToCacheAsync(artistArtwork);
 
         if (artistArtworkCacheId == undefined) {
-            return;
+            return false;
         }
 
         const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
         this.artistArtworkRepository.addArtistArtwork(newArtistArtwork);
-        this.trackRepository.disableNeedsArtistArtworkIndexing(artist);
+
+        return true;
+    }
+
+    // In order to update the NeedsArtistArtworkIndexing flag in the database, we need to know which individual
+    // artists are part of the raw Artists field.
+    private splitToIndividualArtists(artistsThatNeedsArtworkIndexing: ArtistData[]): Map<string, string[]> {
+        const result: Map<string, string[]> = new Map<string, string[]>();
+
+        for (const artistData of artistsThatNeedsArtworkIndexing) {
+            const rawArtists: string = artistData.artists;
+            if (!StringUtils.isNullOrWhiteSpace(rawArtists)) {
+                const artistsToSplit: string[] = DataDelimiter.fromDelimitedString(rawArtists);
+                const individualArtists: string[] = this.artistSplitter.splitArtists(artistsToSplit);
+                result.set(rawArtists, individualArtists);
+            }
+        }
+
+        return result;
+    }
+
+    private countUniqueArtists(map: Map<string, string[]>): number {
+        const individualArtists: string[] = Array.from(map.values()).flat();
+        const uniqueArtists: Set<string> = new Set(individualArtists);
+        return uniqueArtists.size;
     }
 }

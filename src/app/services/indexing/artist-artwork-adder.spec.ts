@@ -227,13 +227,36 @@ describe('ArtistArtworkAdder', () => {
             artistArtworkRepositoryMock.verify((x) => x.addArtistArtwork(newArtistArtwork), Times.exactly(1));
         });
 
-        it('should split artists and load artwork for each individual artist', async () => {
+        it('should load artwork for each individual artist only once', async () => {
             // Arrange
-            artistData = new ArtistData('Aerosmith Feat. Alanis Morissette');
-            trackRepositoryMock.setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing()).returns(() => [artistData]);
+            const artistData1 = new ArtistData('Aerosmith Feat. Alanis Morissette');
+            const artistData2 = new ArtistData('Alanis Morissette Ft. Aerosmith');
+            const artistData3 = new ArtistData('Alanis Morissette');
+            const artistData4 = new ArtistData('Aerosmith');
+            trackRepositoryMock
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
+                .returns(() => [artistData1, artistData2, artistData3, artistData4]);
             artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
+                .setup((x) => x.splitArtists([artistData1.artists]))
                 .returns(() => ['aerosmith', 'alanis morissette']);
+            artistSplitterMock
+                .setup((x) => x.splitArtists([artistData2.artists]))
+                .returns(() => ['alanis morissette', 'aerosmith']);
+            artistSplitterMock
+                .setup((x) => x.splitArtists([artistData3.artists]))
+                .returns(() => ['alanis morissette']);
+            artistSplitterMock
+                .setup((x) => x.splitArtists([artistData4.artists]))
+                .returns(() => ['aerosmith']);
+
+            artistArtworkGetterMock
+                .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
+                .returns(() => Promise.resolve(artistArtworkData));
+
+            const artistArtworkCacheId: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
+            artistArtworkCacheServiceMock
+                .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
+                .returns(() => Promise.resolve(artistArtworkCacheId));
 
             // Act
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
@@ -241,6 +264,59 @@ describe('ArtistArtworkAdder', () => {
             // Assert
             artistArtworkGetterMock.verify((x) => x.getOnlineArtworkAsync('aerosmith'), Times.exactly(1));
             artistArtworkGetterMock.verify((x) => x.getOnlineArtworkAsync('alanis morissette'), Times.exactly(1));
+        });
+
+        it('should disable NeedsArtistArtworkIndexing when downloading artwork for all individual artists succeeds', async () => {
+            // Arrange
+            artistData = new ArtistData('Aerosmith Feat. Alanis Morissette');
+            trackRepositoryMock
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
+                .returns(() => [artistData]);
+            artistSplitterMock
+                .setup((x) => x.splitArtists([artistData.artists]))
+                .returns(() => ['aerosmith', 'alanis morissette']);
+            artistArtworkGetterMock
+                .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
+                .returns(() => Promise.resolve(artistArtworkData));
+
+            const artistArtworkCacheId: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
+            artistArtworkCacheServiceMock
+                .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
+                .returns(() => Promise.resolve(artistArtworkCacheId));
+
+            // Act
+            await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
+
+            // Assert
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistData.artists), Times.exactly(1));
+        });
+
+        it('should not disable NeedsArtistArtworkIndexing when downloading artwork for one artist fails', async () => {
+            // Arrange
+            artistData = new ArtistData('Aerosmith Feat. Alanis Morissette');
+            trackRepositoryMock
+                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
+                .returns(() => [artistData]);
+            artistSplitterMock
+                .setup((x) => x.splitArtists([artistData.artists]))
+                .returns(() => ['aerosmith', 'alanis morissette']);
+            artistArtworkGetterMock
+                .setup((x) => x.getOnlineArtworkAsync('aerosmith'))
+                .returns(() => Promise.resolve(artistArtworkData));
+            artistArtworkGetterMock
+                .setup((x) => x.getOnlineArtworkAsync('alanis morissette'))
+                .returns(() => Promise.resolve(undefined));
+
+            const artistArtworkCacheId: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
+            artistArtworkCacheServiceMock
+                .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
+                .returns(() => Promise.resolve(artistArtworkCacheId));
+
+            // Act
+            await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
+
+            // Assert
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistData.artists), Times.never());
         });
     });
 });

@@ -1,4 +1,5 @@
 import { StringUtils } from '../common/utils/string-utils';
+import { Constants } from '../common/application/constants';
 
 export class ClauseCreator {
     public static escapeQuotes(sourceString: string): string {
@@ -41,15 +42,17 @@ export class ClauseCreator {
         return orLikeClause;
     }
 
-    public static createOrLikeColumnClause(sourceColumn: string, ...targetColumns: string[]): string {
+    public static createOrLikeSplitArtistClause(sourceColumn: string, targetColumn: string, artistSplitSeparators: string): string {
+        const delimiter: string = Constants.columnValueDelimiter;
+        const separators: string[] = artistSplitSeparators.split(/\[([^\]]+)\]/g).filter((x: string) => x !== '');
         const orClauses: string[] = [];
 
-        for (const column of targetColumns) {
-            orClauses.push(
-                `(LOWER(${sourceColumn}) LIKE '%' || LOWER(${column}) || '%')`,
-            );
+        orClauses.push(`LOWER(${sourceColumn}) = '${delimiter}' || ${targetColumn} || '${delimiter}'`);
+        for (const separator of separators) {
+            orClauses.push(`LOWER(${sourceColumn}) LIKE '% ${separator} ' || ${targetColumn} || '${delimiter}%'`);
+            orClauses.push(`LOWER(${sourceColumn}) LIKE '%${delimiter}' || ${targetColumn} || ' ${separator} %'`);
         }
 
-        return ' (' + orClauses.join(' OR ') + ')';
+        return '(' + orClauses.join(' OR ') + ')';
     }
 }

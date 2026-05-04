@@ -42,7 +42,7 @@ describe('OnlineArtistArtworkGetter', () => {
                 .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
                 .returns(() => Promise.resolve(lastfmArtist));
             onlineArtistImageGetter
-                .setup((x) => x.getResizedArtistImageAsync(It.isAnyString(), It.isAnyNumber()))
+                .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
                 .returns(() => Promise.resolve(imageUrl));
             imageProcessorMock
                 .setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString()))

@@ -381,10 +381,11 @@ export class TrackRepository implements TrackRepositoryBase {
 
     public disableNeedsArtistArtworkIndexing(artist: string): void {
         const database: any = this.databaseFactory.create();
-        const statement: any = database.prepare(`UPDATE Track
-                                                 SET NeedsArtistArtworkIndexing=0
-                                                 WHERE LOWER(Artists) LIKE '%${Constants.columnValueDelimiter}' || LOWER(?) || '${Constants.columnValueDelimiter}%'
-                                                 AND NeedsArtistArtworkIndexing=1;`);
+        const statement: any = database.prepare(
+            `UPDATE Track
+             SET NeedsArtistArtworkIndexing=0
+             WHERE Artists = ?;`
+        );
 
         statement.run(artist);
     }
