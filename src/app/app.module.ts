@@ -307,6 +307,7 @@ import { OnlineArtistArtworkGetter } from './services/indexing/online-artist-art
 import { ArtistArtworkCacheServiceBase } from './services/artist-artwork-cache/artist-artwork-cache.service.base';
 import { ArtistArtworkCacheService } from './services/artist-artwork-cache/artist-artwork-cache.service';
 import { ArtistModelFactory } from './services/artist/artist-model-factory';
+import { ArtistsKeyGenerator } from './data/artists-key-generator';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -519,6 +520,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         DatabaseFactory,
         FileMetadataFactory,
         AlbumKeyGenerator,
+        ArtistsKeyGenerator,
         MimeTypes,
         ImageProcessor,
         CachedAlbumArtworkGetter,
