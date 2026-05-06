@@ -5,11 +5,16 @@ import { ArtistArtworkIndexer } from './artist-artwork-indexer';
 import { ArtistArtworkRemover } from './artist-artwork-remover';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { SettingsMock } from '../../testing/settings-mock';
+import {TrackRepositoryBase} from "../../data/repositories/track-repository.base";
+import {ArtistsKeyGenerator} from "../../data/artists-key-generator";
+import {ArtistData} from "../../data/entities/artist-data";
 
 describe('ArtistArtworkIndexer', () => {
     let artistArtworkRemoverMock: IMock<ArtistArtworkRemover>;
     let artistArtworkAdderMock: IMock<ArtistArtworkAdder>;
     let notificationServiceMock: IMock<NotificationServiceBase>;
+    let trackRepositoryBase: IMock<TrackRepositoryBase>;
+    let artistsKeyGenerator: IMock<ArtistsKeyGenerator>;
     let loggerMock: IMock<Logger>;
     let artistArtworkIndexer: ArtistArtworkIndexer;
     let settingsMock: SettingsMock;
@@ -18,12 +23,16 @@ describe('ArtistArtworkIndexer', () => {
         artistArtworkRemoverMock = Mock.ofType<ArtistArtworkRemover>();
         artistArtworkAdderMock = Mock.ofType<ArtistArtworkAdder>();
         notificationServiceMock = Mock.ofType<NotificationServiceBase>();
+        trackRepositoryBase = Mock.ofType<TrackRepositoryBase>();
+        artistsKeyGenerator = Mock.ofType<ArtistsKeyGenerator>();
         loggerMock = Mock.ofType<Logger>();
         settingsMock = new SettingsMock();
         artistArtworkIndexer = new ArtistArtworkIndexer(
             artistArtworkRemoverMock.object,
             artistArtworkAdderMock.object,
             notificationServiceMock.object,
+            trackRepositoryBase.object,
+            artistsKeyGenerator.object,
             loggerMock.object,
             settingsMock,
         );
@@ -84,6 +93,25 @@ describe('ArtistArtworkIndexer', () => {
 
             // Assert
             notificationServiceMock.verify((x) => x.dismiss(), Times.exactly(1));
+        });
+
+        it('should generate an artistsKey for tracks that have no artistsKey', async () => {
+            // Arrange
+            const artist1: ArtistData = new ArtistData(';Artist 1;');
+            const artist2: ArtistData = new ArtistData(';Artist 2;');
+            const artist3: ArtistData = new ArtistData(';Artist 3;');
+            trackRepositoryBase.setup((x) => x.getArtistsWithoutArtistsKey()).returns(() => [artist1, artist2, artist3]);
+            artistsKeyGenerator.setup((x) => x.generateArtistsKey(';Artist 1;')).returns(() => 'artist-key-1');
+            artistsKeyGenerator.setup((x) => x.generateArtistsKey(';Artist 2;')).returns(() => 'artist-key-2');
+            artistsKeyGenerator.setup((x) => x.generateArtistsKey(';Artist 3;')).returns(() => 'artist-key-3');
+
+            // Act
+            await artistArtworkIndexer.indexArtistArtworkAsync();
+
+            // Assert
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 1;', 'artist-key-1'), Times.exactly(1));
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 2;', 'artist-key-2'), Times.exactly(1));
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 3;', 'artist-key-3'), Times.exactly(1));
         });
     });
 });

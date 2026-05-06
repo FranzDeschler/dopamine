@@ -7,19 +7,19 @@ import { Injectable } from '@angular/core';
 import { DatabaseFactory } from '../database-factory';
 import { ArtistArtwork } from '../entities/artist-artwork';
 import { ArtistArtworkRepositoryBase } from './artist-artwork-repository.base';
-import { SettingsBase } from '../../common/settings/settings.base';
-import { ClauseCreator } from '../clause-creator';
+import { Constants } from '../../common/application/constants';
+import { DataDelimiter } from '../data-delimiter';
 
 @Injectable()
 export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public constructor(
         private databaseFactory: DatabaseFactory,
-        private settings: SettingsBase,
     ) {}
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
         const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
-        statement.run(artistArtwork.artist.toLowerCase(), artistArtwork.artworkId);
+        const delimitedArtist: string = DataDelimiter.toDelimitedString([artistArtwork.artist.toLowerCase()]);
+        statement.run(delimitedArtist, artistArtwork.artworkId);
     }
 
     public getAllArtistArtwork(): ArtistArtwork[] | undefined {
@@ -42,7 +42,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             WHERE Artist=?;`,
         );
 
-        return statement.get(artist.toLowerCase());
+        return statement.get(DataDelimiter.toDelimitedString([artist.toLowerCase()]));
     }
 
     public getNumberOfArtistArtwork(): number {
@@ -54,10 +54,10 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
     public getNumberOfArtistArtworkThatHasNoTrack(): number {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork
-            FROM ArtistArtwork as a
+            FROM ArtistArtwork AS a
             WHERE NOT EXISTS (
-                SELECT 1 FROM Track as t
-                WHERE ${this.trackArtistLikeArtworkArtist()}
+                SELECT 1 FROM Track AS t
+                WHERE t.ArtistsKey LIKE '%' || a.Artist || '%'
             );`,
         );
 
@@ -70,7 +70,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             `DELETE FROM ArtistArtwork as a 
              WHERE NOT EXISTS (
                 SELECT 1 FROM Track as t
-                WHERE ${this.trackArtistLikeArtworkArtist()}
+                WHERE t.ArtistsKey LIKE '%' || a.Artist || '%'
              );`,
         );
 
@@ -82,7 +82,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
         const statement = this.database.prepare(
             `SELECT COUNT(*) AS numberOfArtistArtwork 
              FROM ArtistArtwork as a
-             LEFT JOIN Track as t ON ${this.trackArtistLikeArtworkArtist()}
+             LEFT JOIN Track as t ON (t.ArtistsKey LIKE '%' || a.Artist || '%')
              WHERE t.NeedsArtistArtworkIndexing = 1;`,
         );
 
@@ -95,7 +95,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             `DELETE FROM ArtistArtwork as a
              WHERE EXISTS (
                  SELECT 1 FROM Track as t
-                 WHERE ${this.trackArtistLikeArtworkArtist()}
+                 WHERE t.ArtistsKey LIKE '%' || a.Artist || '%'
                  AND t.NeedsArtistArtworkIndexing = 1
              );`,
         );
@@ -106,17 +106,5 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     private get database(): any {
         return this.databaseFactory.create();
-    }
-
-    private trackArtistLikeArtworkArtist(): string {
-        /*
-        LOWER(t.Artists) = ';' || a.Artist || ';'
-        OR LOWER(t.Artists) LIKE '% feat. ' || a.Artist || ';%'
-        OR LOWER(t.Artists) LIKE '% ft. ' || a.Artist || ';%'
-        OR LOWER(t.Artists) LIKE '%;' || a.Artist || ' feat. %'
-        OR LOWER(t.Artists) LIKE '%;' || a.Artist || ' ft. %'
-         */
-        const artistSplitSeparators: string = this.settings.artistSplitSeparators;
-        return ClauseCreator.createOrLikeSplitArtistClause('t.Artists', 'a.Artist', artistSplitSeparators);
     }
 }

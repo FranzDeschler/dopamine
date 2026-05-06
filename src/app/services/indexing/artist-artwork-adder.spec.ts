@@ -6,12 +6,12 @@ import { ArtistArtworkAdder } from './artist-artwork-adder';
 import { ArtistArtworkCacheServiceBase } from '../artist-artwork-cache/artist-artwork-cache.service.base';
 import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artwork-repository.base';
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
-import { ArtistData } from '../../data/entities/artist-data';
+import { ArtistsKey } from '../../data/entities/artist-key';
 import { ArtistArtwork } from '../../data/entities/artist-artwork';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { OnlineArtistArtworkGetter } from './online-artist-artwork-getter';
-import { ArtistSplitter } from '../artist/artist-splitter';
 
+const artist: string = 'metallica';
 const artistArtworkData: Buffer = Buffer.from([1, 2, 3]);
 
 describe('ArtistArtworkAdder', () => {
@@ -22,10 +22,9 @@ describe('ArtistArtworkAdder', () => {
     let loggerMock: IMock<Logger>;
     let artistArtworkGetterMock: IMock<OnlineArtistArtworkGetter>;
     let guidFactoryMock: IMock<GuidFactory>;
-    let artistSplitterMock: IMock<ArtistSplitter>;
 
     let artistArtworkAdder: ArtistArtworkAdder;
-    let artistData: ArtistData;
+    let artistsKey: ArtistsKey;
 
     beforeEach(() => {
         artistArtworkCacheServiceMock = Mock.ofType<ArtistArtworkCacheServiceBase>();
@@ -35,7 +34,6 @@ describe('ArtistArtworkAdder', () => {
         loggerMock = Mock.ofType<Logger>();
         artistArtworkGetterMock = Mock.ofType<OnlineArtistArtworkGetter>();
         guidFactoryMock = Mock.ofType<GuidFactory>();
-        artistSplitterMock = Mock.ofType<ArtistSplitter>();
 
         artistArtworkAdder = new ArtistArtworkAdder(
             artistArtworkCacheServiceMock.object,
@@ -44,10 +42,9 @@ describe('ArtistArtworkAdder', () => {
             notificationServiceMock.object,
             loggerMock.object,
             artistArtworkGetterMock.object,
-            artistSplitterMock.object,
         );
 
-        artistData = new ArtistData('metallica');
+        artistsKey = new ArtistsKey(`;${artist};`);
     });
 
     describe('addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync', () => {
@@ -56,17 +53,14 @@ describe('ArtistArtworkAdder', () => {
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
 
             // Assert
-            trackRepositoryMock.verify((x) => x.getArtistDataThatNeedsArtistArtworkIndexing(), Times.exactly(1));
+            trackRepositoryMock.verify((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing(), Times.exactly(1));
         });
 
         it('should notify that artist artwork is being updated if it is the first time that indexing runs', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => [artistData.artists]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkRepositoryMock
                 .setup((x) => x.getNumberOfArtistArtwork())
                 .returns(() => 0);
@@ -81,8 +75,8 @@ describe('ArtistArtworkAdder', () => {
         it('should not notify that artist artwork is being updated if it is not the first time that indexing runs', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkRepositoryMock
                 .setup((x) => x.getNumberOfArtistArtwork())
                 .returns(() => 10);
@@ -97,8 +91,8 @@ describe('ArtistArtworkAdder', () => {
         it('should ignore unknown artists', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [new ArtistData('')]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [new ArtistsKey('')]);
             artistArtworkRepositoryMock
                 .setup((x) => x.getNumberOfArtistArtwork())
                 .returns(() => 10);
@@ -110,11 +104,11 @@ describe('ArtistArtworkAdder', () => {
             notificationServiceMock.verify((x) => x.updatingArtistArtworkAsync(), Times.never());
         });
 
-        it('should not add artist artwork to the cache if no artist artwork data was found', async () => {
+        it('should not add artist artwork to the cache if no artist artwork was found', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
                 .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
                 .returns(() => Promise.resolve(undefined));
@@ -129,11 +123,8 @@ describe('ArtistArtworkAdder', () => {
         it('should add artist artwork to the cache if artist artwork data was found', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => [artistData.artists]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
                 .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
                 .returns(() => Promise.resolve(artistArtworkData));
@@ -148,8 +139,8 @@ describe('ArtistArtworkAdder', () => {
         it('should not disable artist artwork indexing for the corresponding artist if the artwork was not added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkCacheServiceMock
                 .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
                 .returns(() => Promise.resolve(undefined));
@@ -164,13 +155,10 @@ describe('ArtistArtworkAdder', () => {
         it('should disable artist artwork indexing for the corresponding artist if the artwork was added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => [artistData.artists]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
-                .setup((x) => x.getOnlineArtworkAsync(artistData.artists))
+                .setup((x) => x.getOnlineArtworkAsync(artist))
                 .returns(() => Promise.resolve(artistArtworkData));
 
             const artistArtworkCacheId: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
@@ -182,14 +170,14 @@ describe('ArtistArtworkAdder', () => {
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
 
             // Assert
-            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistData.artists), Times.exactly(1));
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistsKey.artistsKey), Times.exactly(1));
         });
 
         it('should not add artist artwork to the database if the artwork was not added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkCacheServiceMock
                 .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
                 .returns(() => Promise.resolve(undefined));
@@ -204,13 +192,10 @@ describe('ArtistArtworkAdder', () => {
         it('should add artist artwork to the database if the artwork was added to the cache', async () => {
             // Arrange
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => [artistData.artists]);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
-                .setup((x) => x.getOnlineArtworkAsync(artistData.artists))
+                .setup((x) => x.getOnlineArtworkAsync(artist))
                 .returns(() => Promise.resolve(artistArtworkData));
 
             const artistArtworkCacheId: ArtistArtworkCacheId = new ArtistArtworkCacheId(guidFactoryMock.object);
@@ -218,7 +203,7 @@ describe('ArtistArtworkAdder', () => {
                 .setup((x) => x.addArtworkDataToCacheAsync(artistArtworkData))
                 .returns(() => Promise.resolve(artistArtworkCacheId));
 
-            const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artistData.artists, artistArtworkCacheId.id);
+            const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
 
             // Act
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
@@ -229,25 +214,13 @@ describe('ArtistArtworkAdder', () => {
 
         it('should load artwork for each individual artist only once', async () => {
             // Arrange
-            const artistData1 = new ArtistData('Aerosmith Feat. Alanis Morissette');
-            const artistData2 = new ArtistData('Alanis Morissette Ft. Aerosmith');
-            const artistData3 = new ArtistData('Alanis Morissette');
-            const artistData4 = new ArtistData('Aerosmith');
+            const artistsKey1 = new ArtistsKey(';aerosmith;alanis morissette;');
+            const artistsKey2 = new ArtistsKey(';alanis morissette;aerosmith;');
+            const artistsKey3 = new ArtistsKey(';alanis morissette;');
+            const artistsKey4 = new ArtistsKey(';aerosmith;');
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData1, artistData2, artistData3, artistData4]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData1.artists]))
-                .returns(() => ['aerosmith', 'alanis morissette']);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData2.artists]))
-                .returns(() => ['alanis morissette', 'aerosmith']);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData3.artists]))
-                .returns(() => ['alanis morissette']);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData4.artists]))
-                .returns(() => ['aerosmith']);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey1, artistsKey2, artistsKey3, artistsKey4]);
 
             artistArtworkGetterMock
                 .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
@@ -268,13 +241,10 @@ describe('ArtistArtworkAdder', () => {
 
         it('should disable NeedsArtistArtworkIndexing when downloading artwork for all individual artists succeeds', async () => {
             // Arrange
-            artistData = new ArtistData('Aerosmith Feat. Alanis Morissette');
+            artistsKey = new ArtistsKey(';aerosmith;alanis morissette;');
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => ['aerosmith', 'alanis morissette']);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
                 .setup((x) => x.getOnlineArtworkAsync(It.isAnyString()))
                 .returns(() => Promise.resolve(artistArtworkData));
@@ -288,18 +258,15 @@ describe('ArtistArtworkAdder', () => {
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
 
             // Assert
-            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistData.artists), Times.exactly(1));
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistsKey.artistsKey), Times.exactly(1));
         });
 
         it('should not disable NeedsArtistArtworkIndexing when downloading artwork for one artist fails', async () => {
             // Arrange
-            artistData = new ArtistData('Aerosmith Feat. Alanis Morissette');
+            artistsKey = new ArtistsKey(';aerosmith;alanis morissette;');
             trackRepositoryMock
-                .setup((x) => x.getArtistDataThatNeedsArtistArtworkIndexing())
-                .returns(() => [artistData]);
-            artistSplitterMock
-                .setup((x) => x.splitArtists([artistData.artists]))
-                .returns(() => ['aerosmith', 'alanis morissette']);
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
             artistArtworkGetterMock
                 .setup((x) => x.getOnlineArtworkAsync('aerosmith'))
                 .returns(() => Promise.resolve(artistArtworkData));
@@ -316,7 +283,7 @@ describe('ArtistArtworkAdder', () => {
             await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
 
             // Assert
-            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistData.artists), Times.never());
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistsKey.artistsKey), Times.never());
         });
     });
 });

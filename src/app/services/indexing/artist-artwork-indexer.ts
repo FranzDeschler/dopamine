@@ -5,6 +5,9 @@ import { ArtistArtworkAdder } from './artist-artwork-adder';
 import { ArtistArtworkRemover } from './artist-artwork-remover';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { SettingsBase } from '../../common/settings/settings.base';
+import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
+import { ArtistData } from '../../data/entities/artist-data';
+import { ArtistsKeyGenerator } from '../../data/artists-key-generator';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkIndexer {
@@ -12,6 +15,8 @@ export class ArtistArtworkIndexer {
         private artistArtworkRemover: ArtistArtworkRemover,
         private artistArtworkAdder: ArtistArtworkAdder,
         private notificationService: NotificationServiceBase,
+        private trackRepository: TrackRepositoryBase,
+        private artistsKeyGenerator: ArtistsKeyGenerator,
         private logger: Logger,
         private settings: SettingsBase,
     ) {}
@@ -26,6 +31,7 @@ export class ArtistArtworkIndexer {
         const timer: Timer = new Timer();
         timer.start();
 
+        this.createArtistsKeysIfMissing();
         await this.artistArtworkRemover.removeArtistArtworkThatHasNoTrackAsync();
         await this.artistArtworkRemover.removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
         await this.artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
@@ -40,5 +46,23 @@ export class ArtistArtworkIndexer {
         );
 
         this.notificationService.dismiss();
+    }
+
+    private createArtistsKeysIfMissing(): void {
+        const artistDatas: ArtistData[] = this.trackRepository.getArtistsWithoutArtistsKey() ?? [];
+        for (const artistData of artistDatas) {
+            const artists = artistData.artists;
+            try {
+                const artistsKey: string = this.artistsKeyGenerator.generateArtistsKey(artists);
+                this.trackRepository.updateArtistsKey(artists, artistsKey);
+            } catch (error) {
+                this.logger.error(
+                    error,
+                    `Could not create ArtistsKey for '${artists}'`,
+                    'ArtistArtworkIndexer',
+                    'createArtistsKeysIfMissing',
+                );
+            }
+        }
     }
 }

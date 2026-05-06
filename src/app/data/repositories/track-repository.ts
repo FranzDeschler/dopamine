@@ -13,6 +13,7 @@ import { Track } from '../entities/track';
 import { QueryParts } from '../query-parts';
 import { Constants } from '../../common/application/constants';
 import { TrackRepositoryBase } from './track-repository.base';
+import { ArtistsKey } from '../entities/artist-key';
 
 @Injectable()
 export class TrackRepository implements TrackRepositoryBase {
@@ -165,11 +166,38 @@ export class TrackRepository implements TrackRepositoryBase {
         return statement.all();
     }
 
-    public getArtistDataThatNeedsArtistArtworkIndexing(): ArtistData[] | undefined {
+    public getArtistsWithoutArtistsKey(): ArtistData[] | undefined {
         const database = this.databaseFactory.create();
-        const statement = database.prepare(`SELECT DISTINCT t.Artists as artists
-                                            FROM Track t
-                                            WHERE t.NeedsArtistArtworkIndexing=1`);
+        const statement = database.prepare(
+            `SELECT DISTINCT Artists AS artists
+             FROM Track
+             WHERE ArtistsKey IS NULL`,
+        );
+
+        return statement.all();
+    }
+
+    public updateArtistsKey(trackArtists: string, artistsKey: string): void {
+        const database = this.databaseFactory.create();
+        const statement = database.prepare(
+            `UPDATE Track
+             SET ArtistsKey = @artistsKey
+             WHERE Artists = @trackArtists;`,
+        );
+
+        statement.run({
+            artistsKey: artistsKey,
+            trackArtists: trackArtists,
+        });
+    }
+
+    public getArtistsKeysOfArtistsThatNeedsArtworkIndexing(): ArtistsKey[] | undefined {
+        const database = this.databaseFactory.create();
+        const statement = database.prepare(
+            `SELECT DISTINCT ArtistsKey AS artistsKey
+             FROM Track
+             WHERE NeedsArtistArtworkIndexing=1`
+        );
 
         return statement.all();
     }
@@ -364,12 +392,6 @@ export class TrackRepository implements TrackRepositoryBase {
         return statement.get(albumKey);
     }
 
-    public getLastModifiedTrackForArtistKeyAsync(artistKey: string): Track | undefined {
-        const database: any = this.databaseFactory.create();
-        const statement = database.prepare(`${QueryParts.selectTracksQueryPart(false)} WHERE t.ArtistKey=?;`);
-        return statement.get(artistKey);
-    }
-
     public disableNeedsAlbumArtworkIndexing(albumKey: string): void {
         const database: any = this.databaseFactory.create();
         const statement: any = database.prepare(`UPDATE Track
@@ -379,15 +401,15 @@ export class TrackRepository implements TrackRepositoryBase {
         statement.run(albumKey);
     }
 
-    public disableNeedsArtistArtworkIndexing(artist: string): void {
+    public disableNeedsArtistArtworkIndexing(artistsKey: string): void {
         const database: any = this.databaseFactory.create();
         const statement: any = database.prepare(
             `UPDATE Track
              SET NeedsArtistArtworkIndexing=0
-             WHERE Artists = ?;`
+             WHERE ArtistsKey = ?;`,
         );
 
-        statement.run(artist);
+        statement.run(artistsKey);
     }
 
     public updateTrack(track: Track): void {
@@ -423,6 +445,7 @@ export class TrackRepository implements TrackRepositoryBase {
                  DateFileModified=@dateFileModified,
                  NeedsIndexing=@needsIndexing,
                  NeedsAlbumArtworkIndexing=@needsAlbumArtworkIndexing,
+                 ArtistsKey=@artistsKey,
                  NeedsArtistArtworkIndexing=@needsArtistArtworkIndexing,
                  IndexingSuccess=@indexingSuccess,
                  IndexingFailureReason=@indexingFailureReason,
@@ -464,6 +487,7 @@ export class TrackRepository implements TrackRepositoryBase {
             dateFileModified: track.dateFileModified,
             needsIndexing: track.needsIndexing,
             needsAlbumArtworkIndexing: track.needsAlbumArtworkIndexing,
+            artistsKey: track.artistsKey,
             needsArtistArtworkIndexing: track.needsArtistArtworkIndexing,
             indexingSuccess: track.indexingSuccess,
             indexingFailureReason: track.indexingFailureReason,

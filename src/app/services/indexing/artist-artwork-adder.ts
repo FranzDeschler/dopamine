@@ -8,9 +8,8 @@ import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artw
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { DataDelimiter } from '../../data/data-delimiter';
-import { ArtistSplitter } from '../artist/artist-splitter';
 import { StringUtils } from '../../common/utils/string-utils';
-import { ArtistData } from '../../data/entities/artist-data';
+import { ArtistsKey } from '../../data/entities/artist-key';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkAdder {
@@ -21,12 +20,11 @@ export class ArtistArtworkAdder {
         private notificationService: NotificationServiceBase,
         private logger: Logger,
         private artistArtworkGetter: OnlineArtistArtworkGetter,
-        private artistSplitter: ArtistSplitter,
     ) {}
 
     public async addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(): Promise<void> {
         try {
-            const artistsThatNeedsArtworkIndexing: ArtistData[] = this.trackRepository.getArtistDataThatNeedsArtistArtworkIndexing() ?? [];
+            const artistsThatNeedsArtworkIndexing: ArtistsKey[] = this.trackRepository.getArtistsKeysOfArtistsThatNeedsArtworkIndexing() ?? [];
             if (artistsThatNeedsArtworkIndexing.length === 0) {
                 this.logger.info(
                     `Found no artist data that needs indexing`,
@@ -37,10 +35,9 @@ export class ArtistArtworkAdder {
                 return;
             }
 
-            const rawArtistsToIndividualArtistsMap: Map<string, string[]> =
-                this.splitToIndividualArtists(artistsThatNeedsArtworkIndexing);
+            const artistsKeyToIndividualArtistsMap: Map<string, string[]> = this.splitToIndividualArtists(artistsThatNeedsArtworkIndexing);
 
-            const numberOfUniqueArtists = this.countUniqueArtists(rawArtistsToIndividualArtistsMap);
+            const numberOfUniqueArtists = this.countUniqueArtists(artistsKeyToIndividualArtistsMap);
             this.logger.info(
                 `Found ${numberOfUniqueArtists} unique artists that needs indexing`,
                 'ArtistArtworkAdder',
@@ -48,7 +45,7 @@ export class ArtistArtworkAdder {
             );
 
             await this.showNotificationTheFirstTimeIndexingRuns();
-            await this.addArtistArtworkAsync(rawArtistsToIndividualArtistsMap);
+            await this.addArtistArtworkAsync(artistsKeyToIndividualArtistsMap);
         } catch (e: unknown) {
             this.logger.error(
                 e,
@@ -66,12 +63,12 @@ export class ArtistArtworkAdder {
         }
     }
 
-    private async addArtistArtworkAsync(rawArtistsToIndividualArtistsMap: Map<string, string[]>): Promise<void> {
+    private async addArtistArtworkAsync(artistsKeyToIndividualArtistsMap: Map<string, string[]>): Promise<void> {
         const processedArtists: string[] = [];
-        for (const [rawArtists, individualArtists] of rawArtistsToIndividualArtistsMap) {
+        for (const [artistsKey, individualArtists] of artistsKeyToIndividualArtistsMap) {
             let success: boolean = true;
             for (const artist of individualArtists) {
-                if (processedArtists.includes(artist.toLowerCase())) {
+                if (processedArtists.includes(artist)) {
                     continue;
                 }
 
@@ -81,17 +78,17 @@ export class ArtistArtworkAdder {
                     success = false;
                     this.logger.error(
                         e,
-                        `Could not add artist artwork for '${rawArtists}'`,
+                        `Could not add artist artwork for '${artistsKey}'`,
                         'ArtistArtworkAdder',
                         'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
                     );
                 }
 
-                processedArtists.push(artist.toLowerCase());
+                processedArtists.push(artist);
             }
 
             if (success) {
-                this.trackRepository.disableNeedsArtistArtworkIndexing(rawArtists);
+                this.trackRepository.disableNeedsArtistArtworkIndexing(artistsKey);
             }
         }
     }
@@ -116,17 +113,16 @@ export class ArtistArtworkAdder {
         return true;
     }
 
-    // In order to update the NeedsArtistArtworkIndexing flag in the database, we need to know which individual
-    // artists are part of the raw Artists field.
-    private splitToIndividualArtists(artistsThatNeedsArtworkIndexing: ArtistData[]): Map<string, string[]> {
+    // In order to update the NeedsArtistArtworkIndexing flag in the database, we need to keep the ArtistsKey
+    // for the individual artists
+    private splitToIndividualArtists(artistsThatNeedsArtworkIndexing: ArtistsKey[]): Map<string, string[]> {
         const result: Map<string, string[]> = new Map<string, string[]>();
 
-        for (const artistData of artistsThatNeedsArtworkIndexing) {
-            const rawArtists: string = artistData.artists;
-            if (!StringUtils.isNullOrWhiteSpace(rawArtists)) {
-                const artistsToSplit: string[] = DataDelimiter.fromDelimitedString(rawArtists);
-                const individualArtists: string[] = this.artistSplitter.splitArtists(artistsToSplit);
-                result.set(rawArtists, individualArtists);
+        for (const artistsKey of artistsThatNeedsArtworkIndexing) {
+            const key: string = artistsKey.artistsKey;
+            if (!StringUtils.isNullOrWhiteSpace(key)) {
+                const individualArtists: string[] = DataDelimiter.fromDelimitedString(key);
+                result.set(key, individualArtists);
             }
         }
 

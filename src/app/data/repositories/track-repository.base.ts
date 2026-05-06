@@ -2,6 +2,7 @@ import { AlbumData } from '../entities/album-data';
 import { ArtistData } from '../entities/artist-data';
 import { GenreData } from '../entities/genre-data';
 import { Track } from '../entities/track';
+import { ArtistsKey } from '../entities/artist-key';
 
 export abstract class TrackRepositoryBase {
     public abstract getNumberOfTracksThatDoNotBelongFolders(): number;
@@ -19,7 +20,9 @@ export abstract class TrackRepositoryBase {
     public abstract getAlbumDataForAlbumArtists(albumKeyIndex: string, albumArtists: string[]): AlbumData[] | undefined;
     public abstract getAlbumDataForGenres(albumKeyIndex: string, genres: string[]): AlbumData[] | undefined;
     public abstract getAlbumDataThatNeedsIndexing(albumKeyIndex: string): AlbumData[] | undefined;
-    public abstract getArtistDataThatNeedsArtistArtworkIndexing(): ArtistData[] | undefined;
+    public abstract getArtistsWithoutArtistsKey(): ArtistData[] | undefined;
+    public abstract updateArtistsKey(trackArtist: string, artistKey: string): void;
+    public abstract getArtistsKeysOfArtistsThatNeedsArtworkIndexing(): ArtistsKey[] | undefined;
     public abstract getTrackArtistData(): ArtistData[] | undefined;
     public abstract getAlbumArtistData(): ArtistData[] | undefined;
     public abstract getGenreData(): GenreData[] | undefined;
@@ -28,7 +31,6 @@ export abstract class TrackRepositoryBase {
     public abstract updateRating(trackId: number, rating: number): void;
     public abstract updateLove(trackId: number, love: number): void;
     public abstract getLastModifiedTrackForAlbumKeyAsync(albumKeyIndex: string, albumKey: string): Track | undefined;
-    public abstract getLastModifiedTrackForArtistKeyAsync(artistKey: string): Track | undefined;
     public abstract disableNeedsAlbumArtworkIndexing(albumKey: string): void;
     public abstract disableNeedsArtistArtworkIndexing(artistKey: string): void;
     public abstract updateTrack(track: Track): void;

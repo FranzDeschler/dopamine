@@ -65,6 +65,7 @@ class Ioc {
             new TrackFiller(
                 Ioc.get('FileMetadataFactory'),
                 Ioc.get('AlbumKeyGenerator'),
+                Ioc.get('ArtistsKeyGenerator'),
                 Ioc.get('TrackFieldCreator'),
                 Ioc.get('MetadataPatcher'),
                 Ioc.get('MimeTypes'),
