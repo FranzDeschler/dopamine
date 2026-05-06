@@ -261,6 +261,21 @@ describe('ArtistArtworkAdder', () => {
             trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistsKey.artistsKey), Times.exactly(1));
         });
 
+        it('should disable NeedsArtistArtworkIndexing for unknown artists', async () => {
+            // Arrange
+            artistsKey = new ArtistsKey('');
+            trackRepositoryMock
+                .setup((x) => x.getArtistsKeysOfArtistsThatNeedsArtworkIndexing())
+                .returns(() => [artistsKey]);
+
+            // Act
+            await artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
+
+            // Assert
+            artistArtworkGetterMock.verify((x) => x.getOnlineArtworkAsync(It.isAnyString()), Times.never());
+            trackRepositoryMock.verify((x) => x.disableNeedsArtistArtworkIndexing(artistsKey.artistsKey), Times.exactly(1));
+        });
+
         it('should not disable NeedsArtistArtworkIndexing when downloading artwork for one artist fails', async () => {
             // Arrange
             artistsKey = new ArtistsKey(';aerosmith;alanis morissette;');

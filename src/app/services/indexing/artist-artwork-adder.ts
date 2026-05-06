@@ -10,6 +10,7 @@ import { NotificationServiceBase } from '../notification/notification.service.ba
 import { DataDelimiter } from '../../data/data-delimiter';
 import { StringUtils } from '../../common/utils/string-utils';
 import { ArtistsKey } from '../../data/entities/artist-key';
+import { Constants } from '../../common/application/constants';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkAdder {
@@ -120,7 +121,9 @@ export class ArtistArtworkAdder {
 
         for (const artistsKey of artistsThatNeedsArtworkIndexing) {
             const key: string = artistsKey.artistsKey;
-            if (!StringUtils.isNullOrWhiteSpace(key)) {
+            if (StringUtils.isNullOrWhiteSpace(key)) {
+                result.set(key, []);
+            } else {
                 const individualArtists: string[] = DataDelimiter.fromDelimitedString(key);
                 result.set(key, individualArtists);
             }
