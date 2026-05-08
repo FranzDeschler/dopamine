@@ -14,6 +14,8 @@ import { QueryParts } from '../query-parts';
 import { Constants } from '../../common/application/constants';
 import { TrackRepositoryBase } from './track-repository.base';
 import { ArtistsKey } from '../entities/artist-key';
+import { ArrayUtils } from '../../common/utils/array-utils';
+import { DataDelimiter } from '../data-delimiter';
 
 @Injectable()
 export class TrackRepository implements TrackRepositoryBase {
@@ -191,15 +193,19 @@ export class TrackRepository implements TrackRepositoryBase {
         });
     }
 
-    public getArtistsKeysOfArtistsThatNeedsArtworkIndexing(): ArtistsKey[] | undefined {
+    public getAllIndividualArtists(): string[] | undefined {
         const database = this.databaseFactory.create();
-        const statement = database.prepare(
-            `SELECT DISTINCT ArtistsKey AS artistsKey
-             FROM Track
-             WHERE NeedsArtistArtworkIndexing=1`
-        );
+        const statement = database.prepare(`SELECT DISTINCT ArtistsKey AS artistsKey FROM Track;`);
 
-        return statement.all();
+        const artistsKeys: ArtistsKey[] | undefined = statement.all();
+        let uniqueArtists: Set<string> = new Set();
+        if (!ArrayUtils.isNullOrEmpty(artistsKeys)) {
+            const individualArtists: string[] = artistsKeys!
+                .flatMap((artistKey: ArtistsKey): string[] => DataDelimiter.fromDelimitedString(artistKey.artistsKey));
+            uniqueArtists = new Set(individualArtists);
+        }
+
+        return [...uniqueArtists];
     }
 
     public getAlbumDataForAlbumKey(albumKeyIndex: string, albumKey: string): AlbumData[] | undefined {
@@ -401,17 +407,6 @@ export class TrackRepository implements TrackRepositoryBase {
         statement.run(albumKey);
     }
 
-    public disableNeedsArtistArtworkIndexing(artistsKey: string): void {
-        const database: any = this.databaseFactory.create();
-        const statement: any = database.prepare(
-            `UPDATE Track
-             SET NeedsArtistArtworkIndexing=0
-             WHERE ArtistsKey = ?;`,
-        );
-
-        statement.run(artistsKey);
-    }
-
     public updateTrack(track: Track): void {
         const database: any = this.databaseFactory.create();
 
@@ -446,7 +441,6 @@ export class TrackRepository implements TrackRepositoryBase {
                  NeedsIndexing=@needsIndexing,
                  NeedsAlbumArtworkIndexing=@needsAlbumArtworkIndexing,
                  ArtistsKey=@artistsKey,
-                 NeedsArtistArtworkIndexing=@needsArtistArtworkIndexing,
                  IndexingSuccess=@indexingSuccess,
                  IndexingFailureReason=@indexingFailureReason,
                  NewRating=@rating,
@@ -488,7 +482,6 @@ export class TrackRepository implements TrackRepositoryBase {
             needsIndexing: track.needsIndexing,
             needsAlbumArtworkIndexing: track.needsAlbumArtworkIndexing,
             artistsKey: track.artistsKey,
-            needsArtistArtworkIndexing: track.needsArtistArtworkIndexing,
             indexingSuccess: track.indexingSuccess,
             indexingFailureReason: track.indexingFailureReason,
             rating: track.rating,

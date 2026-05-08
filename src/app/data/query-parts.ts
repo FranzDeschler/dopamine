@@ -79,7 +79,6 @@ export class QueryParts {
                                                              t.DateFileModified AS dateFileModified,
                                                              t.NeedsIndexing AS needsIndexing,
                                                              t.NeedsAlbumArtworkIndexing AS needsAlbumArtworkIndexing,
-                                                             t.NeedsArtistArtworkIndexing AS needsArtistArtworkIndexing,
                                                              t.IndexingSuccess AS indexingSuccess,
                                                              t.IndexingFailureReason AS indexingFailureReason,
                                                              t.NewRating AS rating,

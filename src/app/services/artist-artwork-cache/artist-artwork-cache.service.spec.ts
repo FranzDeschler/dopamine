@@ -124,6 +124,35 @@ describe('ArtistArtworkCacheService', () => {
             // Assert
             imageProcessorMock.verify((x) => x.convertImageBufferToFileAsync(resizedImageBuffer, cachedArtworkFilePath), Times.once());
         });
+
+        it('should not save an empty image on disk', async () => {
+            // Arrange
+            const imageBuffer = Constants.emptyImageBuffer;
+            const artistArtworkCacheIdToCreate: ArtistArtworkCacheId = new ArtistArtworkCacheId();
+            artistArtworkCacheIdFactoryMock
+                .setup((x) => x.createDefault())
+                .returns(() => artistArtworkCacheIdToCreate);
+
+            // Act
+            await service.addArtworkDataToCacheAsync(imageBuffer);
+
+            // Assert
+            imageProcessorMock.verify((x) => x.convertImageBufferToFileAsync(imageBuffer, cachedArtworkFilePath), Times.never());
+        });
+
+        it('should return the default id for an empty image', async () => {
+            // Arrange
+            const imageBuffer = Constants.emptyImageBuffer;
+            const expectedArtworkId: ArtistArtworkCacheId = new ArtistArtworkCacheId();
+            artistArtworkCacheIdFactoryMock.setup((x) => x.createDefault()).returns(() => expectedArtworkId);
+
+            // Act
+            const actualArtworkId = await service.addArtworkDataToCacheAsync(imageBuffer);
+
+            // Assert
+            expect(actualArtworkId).toEqual(expectedArtworkId);
+            artistArtworkCacheIdFactoryMock.verify((x) => x.createDefault(), Times.once());
+        });
     });
 
     describe('removeArtworkDataFromCache', () => {

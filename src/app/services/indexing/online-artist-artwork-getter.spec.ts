@@ -5,6 +5,7 @@ import { Logger } from '../../common/logger';
 import { OnlineArtistArtworkGetter } from './online-artist-artwork-getter';
 import { LastfmApi } from '../../common/api/lastfm/lastfm.api';
 import { OnlineArtistImageGetter } from '../artist-information/online-artist-image-getter';
+import { Constants } from '../../common/application/constants';
 
 const artist = 'metallica';
 const expectedArtistArtwork: Buffer = Buffer.from([1, 2, 3]);
@@ -55,6 +56,22 @@ describe('OnlineArtistArtworkGetter', () => {
             expect(actualArtistArtwork).toEqual(expectedArtistArtwork);
         });
 
+        it('should return empty image if no image was found', async () => {
+            // Arrange
+            lastfmApiMock
+                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
+                .returns(() => Promise.resolve(lastfmArtist));
+            onlineArtistImageGetter
+                .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
+                .returns(() => Promise.resolve(''));
+
+            // Act
+            const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(artist);
+
+            // Assert
+            expect(actualArtistArtwork).toEqual(Constants.emptyImageBuffer);
+        });
+
         it('should return undefined if getting online artist info throws error', async () => {
             // Arrange
             imageProcessorMock
@@ -92,9 +109,9 @@ describe('OnlineArtistArtworkGetter', () => {
             lastfmApiMock
                 .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
                 .returns(() => Promise.resolve(lastfmArtist));
-            lastfmApiMock
-                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-                .throws(new Error('An error occurred'));
+            onlineArtistImageGetter
+                .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
+                .returns(() => Promise.resolve(imageUrl));
             imageProcessorMock
                 .setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString()))
                 .throws(new Error('An error occurred'));

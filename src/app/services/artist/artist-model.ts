@@ -4,6 +4,7 @@ import { ISelectable } from '../../ui/interfaces/i-selectable';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { Constants } from '../../common/application/constants';
 import { ApplicationPaths } from '../../common/application/application-paths';
+import { ArtistArtworkCacheId } from '../artist-artwork-cache/artist-artwork-cache-id';
 
 export class ArtistModel extends SemanticZoomable implements ISelectable {
     public constructor(
@@ -30,7 +31,11 @@ export class ArtistModel extends SemanticZoomable implements ISelectable {
     }
 
     public get artworkPath(): string {
-        if (this.isUnknownArtist || StringUtils.isNullOrWhiteSpace(this.artworkId)) {
+        if (
+            this.isUnknownArtist ||
+            StringUtils.isNullOrWhiteSpace(this.artworkId) ||
+            this.artworkId === ArtistArtworkCacheId.defaultArtworkId
+        ) {
             return Constants.emptyImage;
         }
 

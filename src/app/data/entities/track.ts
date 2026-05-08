@@ -28,7 +28,6 @@ export class Track {
         this.needsIndexing = 0;
         this.needsAlbumArtworkIndexing = 0;
         this.artistsKey = '';
-        this.needsArtistArtworkIndexing = 0;
         this.indexingSuccess = 1;
         this.indexingFailureReason = '';
         this.rating = 0;
@@ -69,7 +68,6 @@ export class Track {
     public needsIndexing: number | undefined;
     public needsAlbumArtworkIndexing: number | undefined;
     public artistsKey: string | undefined;
-    public needsArtistArtworkIndexing: number | undefined;
     public indexingSuccess: number | undefined;
     public indexingFailureReason: string | undefined;
     public rating: number | undefined;

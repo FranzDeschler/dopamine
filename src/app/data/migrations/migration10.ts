@@ -12,7 +12,5 @@ export class Migration10 extends Migration {
                         PRIMARY KEY(ArtistArtworkID));`);
 
         this.sql('ALTER TABLE Track ADD ArtistsKey TEXT;');
-        this.sql('ALTER TABLE Track ADD NeedsArtistArtworkIndexing INTEGER;');
-        this.sql('UPDATE Track SET NeedsArtistArtworkIndexing=1;');
     }
 }

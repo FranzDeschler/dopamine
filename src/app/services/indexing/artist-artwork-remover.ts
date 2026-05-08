@@ -60,55 +60,6 @@ export class ArtistArtworkRemover {
         }
     }
 
-    public async removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(): Promise<void> {
-        const timer: Timer = new Timer();
-        timer.start();
-
-        try {
-            const numberOfArtistArtworkToRemove: number =
-                this.artistArtworkRepository.getNumberOfArtistArtworkForTracksThatNeedArtistArtworkIndexing();
-
-            if (numberOfArtistArtworkToRemove === 0) {
-                timer.stop();
-
-                this.logger.info(
-                    `There is no artist artwork to remove. Time required: ${timer.elapsedMilliseconds} ms.`,
-                    'ArtistArtworkRemover',
-                    'removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-                );
-
-                return;
-            }
-
-            this.logger.info(
-                `Found ${numberOfArtistArtworkToRemove} artist artwork.`,
-                'ArtistArtworkRemover',
-                'removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-            );
-
-            await this.notificationService.updatingArtistArtworkAsync();
-
-            const numberOfRemovedArtistArtwork: number = this.artistArtworkRepository.deleteArtistArtworkForTracksThatNeedArtistArtworkIndexing();
-
-            timer.stop();
-
-            this.logger.info(
-                `Removed ${numberOfRemovedArtistArtwork} artist artwork. Time required: ${timer.elapsedMilliseconds} ms.`,
-                'ArtistArtworkRemover',
-                'removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-            );
-        } catch (e: unknown) {
-            timer.stop();
-
-            this.logger.error(
-                e,
-                'Could not remove artist artwork',
-                'ArtistArtworkRemover',
-                'removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-            );
-        }
-    }
-
     public async removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(): Promise<void> {
         try {
             const allArtistArtworkInDatabase: ArtistArtwork[] = this.artistArtworkRepository.getAllArtistArtwork() ?? [];
@@ -144,6 +95,12 @@ export class ArtistArtworkRemover {
                     await this.notificationService.updatingArtistArtworkAsync();
                 }
             }
+
+            this.logger.info(
+                `Removed ${numberOfRemovedArtistArtwork} artwork files on disk`,
+                'ArtistArtworkRemover',
+                'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
+            );
         } catch (e: unknown) {
             this.logger.error(
                 e,

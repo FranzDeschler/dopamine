@@ -33,8 +33,7 @@ export class ArtistArtworkIndexer {
 
         this.createArtistsKeysIfMissing();
         await this.artistArtworkRemover.removeArtistArtworkThatHasNoTrackAsync();
-        await this.artistArtworkRemover.removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
-        await this.artistArtworkAdder.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync();
+        await this.artistArtworkAdder.addMissingArtistArtworkAsync();
         await this.artistArtworkRemover.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync();
 
         timer.stop();

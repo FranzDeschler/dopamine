@@ -9,4 +9,8 @@ export class ArtistArtworkCacheIdFactory {
     public create(): ArtistArtworkCacheId {
         return new ArtistArtworkCacheId(this.guidFactory);
     }
+
+    public createDefault(): ArtistArtworkCacheId {
+        return new ArtistArtworkCacheId();
+    }
 }

@@ -25,6 +25,10 @@ export class ArtistArtworkCacheService implements ArtistArtworkCacheServiceBase 
             return undefined;
         }
 
+        if (imageBuffer === Constants.emptyImageBuffer) {
+            return this.artistArtworkCacheIdFactory.createDefault();
+        }
+
         try {
             const artistArtworkCacheId: ArtistArtworkCacheId = this.artistArtworkCacheIdFactory.create();
             const cachedArtworkFilePath: string = this.applicationPaths.artistArtFullPath(artistArtworkCacheId.id);

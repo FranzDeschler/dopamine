@@ -50,8 +50,7 @@ describe('ArtistArtworkIndexer', () => {
 
             // Assert
             artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.never());
-            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.never());
-            artistArtworkAdderMock.verify((x) => x.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.never());
+            artistArtworkAdderMock.verify((x) => x.addMissingArtistArtworkAsync(), Times.never());
             artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.never());
         });
 
@@ -63,20 +62,12 @@ describe('ArtistArtworkIndexer', () => {
             artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.exactly(1));
         });
 
-        it('should remove artwork for tracks that need artist artwork indexing', async () => {
-            // Arrange, Act
-            await artistArtworkIndexer.indexArtistArtworkAsync();
-
-            // Assert
-            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.exactly(1));
-        });
-
         it('should add artwork for tracks that need artist artwork indexing', async () => {
             // Arrange, Act
             await artistArtworkIndexer.indexArtistArtworkAsync();
 
             // Assert
-            artistArtworkAdderMock.verify((x) => x.addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(), Times.exactly(1));
+            artistArtworkAdderMock.verify((x) => x.addMissingArtistArtworkAsync(), Times.once());
         });
 
         it('should remove artwork that is not in the database from disk', async () => {

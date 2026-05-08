@@ -7,6 +7,6 @@ export abstract class ArtistArtworkRepositoryBase {
     public abstract addArtistArtwork(artistArtwork: ArtistArtwork): void;
     public abstract getAllArtistArtwork(): ArtistArtwork[] | undefined;
     public abstract getArtistArtworkForArtist(artist: string): ArtistArtwork | undefined;
-    public abstract getNumberOfArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number;
-    public abstract deleteArtistArtworkForTracksThatNeedArtistArtworkIndexing(): number;
+    public abstract deleteArtistArtworkWithDefaultId(): number;
+    public abstract deleteAllArtistArtwork(): number
 }

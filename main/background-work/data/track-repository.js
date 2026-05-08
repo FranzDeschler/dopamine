@@ -103,7 +103,6 @@ class TrackRepository {
                 DateFileModified=@dateFileModified,
                 NeedsIndexing=@needsIndexing,
                 NeedsAlbumArtworkIndexing=@needsAlbumArtworkIndexing,
-                NeedsArtistArtworkIndexing=@needsArtistArtworkIndexing,
                 IndexingSuccess=@indexingSuccess,
                 IndexingFailureReason=@indexingFailureReason,
                 NewRating=@rating,

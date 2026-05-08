@@ -14,7 +14,11 @@ describe('ArtistArtworkCacheId', () => {
         return new ArtistArtworkCacheId(guidFactoryMock.object);
     }
 
-    describe('constructor', () => {
+    function createDefaultInstance(): ArtistArtworkCacheId {
+        return new ArtistArtworkCacheId();
+    }
+
+    describe('constructor with factory', () => {
         it('should create', () => {
             // Arrange, Act
             const instance: ArtistArtworkCacheId = createInstance();
@@ -45,6 +49,24 @@ describe('ArtistArtworkCacheId', () => {
 
             // Assert
             expect(instance.id.length).toEqual(43);
+        });
+    });
+
+    describe('default constructor', () => {
+        it('should create', () => {
+            // Arrange, Act
+            const instance: ArtistArtworkCacheId = createDefaultInstance();
+
+            // Assert
+            expect(instance).toBeDefined();
+        });
+
+        it('should create default id', () => {
+            // Arrange, Act
+            const instance: ArtistArtworkCacheId = createDefaultInstance();
+
+            // Assert
+            expect(instance.id).toEqual(ArtistArtworkCacheId.defaultArtworkId);
         });
     });
 });

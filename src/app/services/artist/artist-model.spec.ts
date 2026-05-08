@@ -3,6 +3,7 @@ import { ArtistModel } from './artist-model';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { ApplicationPaths } from '../../common/application/application-paths';
 import { Constants } from '../../common/application/constants';
+import { ArtistArtworkCacheId } from '../artist-artwork-cache/artist-artwork-cache-id';
 
 describe('ArtistModel', () => {
     let translatorServiceMock: IMock<TranslatorServiceBase>;
@@ -140,6 +141,17 @@ describe('ArtistModel', () => {
         it('should return empty gif if artistData.artworkId is space', () => {
             // Arrange
             artistModel.artworkId = ' ';
+
+            // Act
+            const artworkPath: string = artistModel.artworkPath;
+
+            // Assert
+            expect(artworkPath).toEqual(Constants.emptyImage);
+        });
+
+        it('should return empty gif if artistData.artworkId is the default id', () => {
+            // Arrange
+            artistModel.artworkId = ArtistArtworkCacheId.defaultArtworkId;
 
             // Act
             const artworkPath: string = artistModel.artworkPath;

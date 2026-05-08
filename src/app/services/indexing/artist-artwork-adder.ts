@@ -8,9 +8,7 @@ import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artw
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { DataDelimiter } from '../../data/data-delimiter';
-import { StringUtils } from '../../common/utils/string-utils';
-import { ArtistsKey } from '../../data/entities/artist-key';
-import { Constants } from '../../common/application/constants';
+import { ArrayUtils } from '../../common/utils/array-utils';
 
 @Injectable({ providedIn: 'root' })
 export class ArtistArtworkAdder {
@@ -23,30 +21,27 @@ export class ArtistArtworkAdder {
         private artistArtworkGetter: OnlineArtistArtworkGetter,
     ) {}
 
-    public async addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync(): Promise<void> {
+    public async addMissingArtistArtworkAsync(): Promise<void> {
         try {
-            const artistsThatNeedsArtworkIndexing: ArtistsKey[] = this.trackRepository.getArtistsKeysOfArtistsThatNeedsArtworkIndexing() ?? [];
-            if (artistsThatNeedsArtworkIndexing.length === 0) {
-                this.logger.info(
-                    `Found no artist data that needs indexing`,
-                    'ArtistArtworkAdder',
-                    'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-                );
-
-                return;
-            }
-
-            const artistsKeyToIndividualArtistsMap: Map<string, string[]> = this.splitToIndividualArtists(artistsThatNeedsArtworkIndexing);
-
-            const numberOfUniqueArtists = this.countUniqueArtists(artistsKeyToIndividualArtistsMap);
-            this.logger.info(
-                `Found ${numberOfUniqueArtists} unique artists that needs indexing`,
-                'ArtistArtworkAdder',
-                'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
+            const allIndividualArtists: string[] = this.trackRepository.getAllIndividualArtists() ?? [];
+            const allArtistArtworks: ArtistArtwork[] = this.artistArtworkRepository.getAllArtistArtwork() ?? [];
+            const artistsWithArtwork: string[] = allArtistArtworks.flatMap((artistArtwork: ArtistArtwork): string[] =>
+                DataDelimiter.fromDelimitedString(artistArtwork.artist),
+            );
+            const artistsWithoutArtwork: string[] = allIndividualArtists.filter(
+                (artist: string): boolean => artist !== '' && !artistsWithArtwork.includes(artist),
             );
 
-            await this.showNotificationTheFirstTimeIndexingRuns();
-            await this.addArtistArtworkAsync(artistsKeyToIndividualArtistsMap);
+            this.logger.info(
+                `Found ${artistsWithoutArtwork.length} artists that have no artwork`,
+                'ArtistArtworkAdder',
+                'addMissingArtistArtworkAsync',
+            );
+
+            if (!ArrayUtils.isNullOrEmpty(artistsWithoutArtwork)) {
+                await this.showNotificationTheFirstTimeIndexingRuns();
+                await this.addArtistArtworkAsync(artistsWithoutArtwork);
+            }
         } catch (e: unknown) {
             this.logger.error(
                 e,
@@ -64,77 +59,26 @@ export class ArtistArtworkAdder {
         }
     }
 
-    private async addArtistArtworkAsync(artistsKeyToIndividualArtistsMap: Map<string, string[]>): Promise<void> {
-        const processedArtists: string[] = [];
-        for (const [artistsKey, individualArtists] of artistsKeyToIndividualArtistsMap) {
-            let success: boolean = true;
-            for (const artist of individualArtists) {
-                if (processedArtists.includes(artist)) {
-                    continue;
+    private async addArtistArtworkAsync(artistsWithoutArtwork: string[]): Promise<void> {
+        for (const artist of artistsWithoutArtwork) {
+            try {
+                const artistArtwork: Buffer | undefined = await this.artistArtworkGetter.getOnlineArtworkAsync(artist);
+                if (artistArtwork != undefined) {
+                    const artistArtworkCacheId: ArtistArtworkCacheId | undefined =
+                        await this.artistArtworkCacheService.addArtworkDataToCacheAsync(artistArtwork);
+                    if (artistArtworkCacheId != undefined) {
+                        const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
+                        this.artistArtworkRepository.addArtistArtwork(newArtistArtwork);
+                    }
                 }
-
-                try {
-                    success &&= await this.addArtistArtworkForIndividualArtistAsync(artist);
-                } catch (e: unknown) {
-                    success = false;
-                    this.logger.error(
-                        e,
-                        `Could not add artist artwork for '${artistsKey}'`,
-                        'ArtistArtworkAdder',
-                        'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-                    );
-                }
-
-                processedArtists.push(artist);
-            }
-
-            if (success) {
-                this.trackRepository.disableNeedsArtistArtworkIndexing(artistsKey);
+            } catch (e: unknown) {
+                this.logger.error(
+                    e,
+                    `Could not add artist artwork for '${artist}'`,
+                    'ArtistArtworkAdder',
+                    'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
+                );
             }
         }
-    }
-
-    private async addArtistArtworkForIndividualArtistAsync(artist: string): Promise<boolean> {
-        const artistArtwork: Buffer | undefined = await this.artistArtworkGetter.getOnlineArtworkAsync(artist);
-
-        if (artistArtwork == undefined) {
-            return false;
-        }
-
-        const artistArtworkCacheId: ArtistArtworkCacheId | undefined =
-            await this.artistArtworkCacheService.addArtworkDataToCacheAsync(artistArtwork);
-
-        if (artistArtworkCacheId == undefined) {
-            return false;
-        }
-
-        const newArtistArtwork: ArtistArtwork = new ArtistArtwork(artist, artistArtworkCacheId.id);
-        this.artistArtworkRepository.addArtistArtwork(newArtistArtwork);
-
-        return true;
-    }
-
-    // In order to update the NeedsArtistArtworkIndexing flag in the database, we need to keep the ArtistsKey
-    // for the individual artists
-    private splitToIndividualArtists(artistsThatNeedsArtworkIndexing: ArtistsKey[]): Map<string, string[]> {
-        const result: Map<string, string[]> = new Map<string, string[]>();
-
-        for (const artistsKey of artistsThatNeedsArtworkIndexing) {
-            const key: string = artistsKey.artistsKey;
-            if (StringUtils.isNullOrWhiteSpace(key)) {
-                result.set(key, []);
-            } else {
-                const individualArtists: string[] = DataDelimiter.fromDelimitedString(key);
-                result.set(key, individualArtists);
-            }
-        }
-
-        return result;
-    }
-
-    private countUniqueArtists(map: Map<string, string[]>): number {
-        const individualArtists: string[] = Array.from(map.values()).flat();
-        const uniqueArtists: Set<string> = new Set(individualArtists);
-        return uniqueArtists.size;
     }
 }

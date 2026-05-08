@@ -5,6 +5,7 @@ import { Logger } from '../../common/logger';
 import { ImageProcessor } from '../../common/image-processor';
 import { LastfmApi } from '../../common/api/lastfm/lastfm.api';
 import { OnlineArtistImageGetter } from '../artist-information/online-artist-image-getter';
+import { Constants } from '../../common/application/constants';
 
 @Injectable()
 export class OnlineArtistArtworkGetter {
@@ -40,6 +41,7 @@ export class OnlineArtistArtworkGetter {
 
             if (StringUtils.isNullOrWhiteSpace(artistImageUrl)) {
                 this.logger.info(`Could not find online artwork for '${artistName}'`, 'OnlineArtistArtworkGetter', 'getOnlineArtworkAsync');
+                return Constants.emptyImageBuffer;
             } else {
                 let artworkData: Buffer;
 
