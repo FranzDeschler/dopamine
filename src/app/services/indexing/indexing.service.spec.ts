@@ -1,4 +1,4 @@
-import { IMock, Mock } from 'typemoq';
+import { IMock, Mock, Times } from 'typemoq';
 import { Logger } from '../../common/logger';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { FolderServiceBase } from '../folder/folder.service.base';
@@ -81,6 +81,30 @@ describe('IndexingService', () => {
 
             // Assert
             expect(sut).toBeDefined();
+        });
+    });
+
+    describe('indexArtistArtworkOnlyAsync', () => {
+        it('should refresh missing artists artwork', async () => {
+            // Arrange
+            const sut: IndexingService = createSut();
+
+            // Act
+            await sut.indexArtistArtworkOnlyAsync(true);
+
+            // Assert
+            artistArtworkIndexerMock.verify((x) => x.refreshMissingArtistsArtworkAsync(), Times.once());
+        });
+
+        it('should refresh all artists artwork', async () => {
+            // Arrange
+            const sut: IndexingService = createSut();
+
+            // Act
+            await sut.indexArtistArtworkOnlyAsync(false);
+
+            // Assert
+            artistArtworkIndexerMock.verify((x) => x.refreshAllArtistsArtworkAsync(), Times.once());
         });
     });
 

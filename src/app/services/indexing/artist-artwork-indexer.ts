@@ -47,6 +47,18 @@ export class ArtistArtworkIndexer {
         this.notificationService.dismiss();
     }
 
+    public async refreshMissingArtistsArtworkAsync(): Promise<void> {
+        await this.notificationService.updatingArtistArtworkAsync();
+        this.artistArtworkRemover.removeArtistArtworkWithDefaultIdAsync();
+        await this.indexArtistArtworkAsync();
+    }
+
+    public async refreshAllArtistsArtworkAsync(): Promise<void> {
+        await this.notificationService.updatingArtistArtworkAsync();
+        this.artistArtworkRemover.removeAllArtistArtworkAsync();
+        await this.indexArtistArtworkAsync();
+    }
+
     private createArtistsKeysIfMissing(): void {
         const artistDatas: ArtistData[] = this.trackRepository.getArtistsWithoutArtistsKey() ?? [];
         for (const artistData of artistDatas) {

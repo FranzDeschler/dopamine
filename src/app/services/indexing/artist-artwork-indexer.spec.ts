@@ -59,7 +59,7 @@ describe('ArtistArtworkIndexer', () => {
             await artistArtworkIndexer.indexArtistArtworkAsync();
 
             // Assert
-            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.exactly(1));
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.once());
         });
 
         it('should add artwork for tracks that need artist artwork indexing', async () => {
@@ -75,7 +75,7 @@ describe('ArtistArtworkIndexer', () => {
             await artistArtworkIndexer.indexArtistArtworkAsync();
 
             // Assert
-            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.exactly(1));
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.once());
         });
 
         it('should dismiss the indexing notification', async () => {
@@ -83,7 +83,7 @@ describe('ArtistArtworkIndexer', () => {
             await artistArtworkIndexer.indexArtistArtworkAsync();
 
             // Assert
-            notificationServiceMock.verify((x) => x.dismiss(), Times.exactly(1));
+            notificationServiceMock.verify((x) => x.dismiss(), Times.once());
         });
 
         it('should generate an artistsKey for tracks that have no artistsKey', async () => {
@@ -100,9 +100,65 @@ describe('ArtistArtworkIndexer', () => {
             await artistArtworkIndexer.indexArtistArtworkAsync();
 
             // Assert
-            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 1;', 'artist-key-1'), Times.exactly(1));
-            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 2;', 'artist-key-2'), Times.exactly(1));
-            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 3;', 'artist-key-3'), Times.exactly(1));
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 1;', 'artist-key-1'), Times.once());
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 2;', 'artist-key-2'), Times.once());
+            trackRepositoryBase.verify((x) => x.updateArtistsKey(';Artist 3;', 'artist-key-3'), Times.once());
+        });
+    });
+
+    describe('refreshAllArtistsArtworkAsync', () => {
+        it('should show the indexing notification', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshAllArtistsArtworkAsync();
+
+            // Assert
+            notificationServiceMock.verify((x) => x.updatingArtistArtworkAsync(), Times.once());
+        });
+
+        it('should delete all artist artwork from cache', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshAllArtistsArtworkAsync();
+
+            // Assert
+            artistArtworkRemoverMock.verify((x) => x.removeAllArtistArtworkAsync(), Times.once());
+        });
+
+        it('should restart indexing artist artwork', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshAllArtistsArtworkAsync();
+
+            // Assert
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.once());
+            artistArtworkAdderMock.verify((x) => x.addMissingArtistArtworkAsync(), Times.once());
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.once());
+        });
+    });
+
+    describe('refreshMissingArtistsArtworkAsync', () => {
+        it('should show the indexing notification', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshMissingArtistsArtworkAsync();
+
+            // Assert
+            notificationServiceMock.verify((x) => x.updatingArtistArtworkAsync(), Times.once());
+        });
+
+        it('should delete artist artwork from cache that have default cache id', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshMissingArtistsArtworkAsync();
+
+            // Assert
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkWithDefaultIdAsync(), Times.once());
+        });
+
+        it('should restart indexing artist artwork', async () => {
+            // Arrange, Act
+            await artistArtworkIndexer.refreshMissingArtistsArtworkAsync();
+
+            // Assert
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatHasNoTrackAsync(), Times.once());
+            artistArtworkAdderMock.verify((x) => x.addMissingArtistArtworkAsync(), Times.once());
+            artistArtworkRemoverMock.verify((x) => x.removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync(), Times.once());
         });
     });
 });

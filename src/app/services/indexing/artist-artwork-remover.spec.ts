@@ -250,4 +250,24 @@ describe('ArtistArtworkRemover', () => {
             );
         });
     });
+
+    describe('removeArtistArtworkWithDefaultIdAsync', () => {
+        it('should delete artist artwork from database that has default cache id', () => {
+            // Arrange, Act
+            artistArtworkRemover.removeArtistArtworkWithDefaultIdAsync();
+
+            // Assert
+            artistArtworkRepositoryMock.verify((x) => x.deleteArtistArtworkWithDefaultId(), Times.once());
+        });
+    });
+
+    describe('removeAllArtistArtworkAsync', () => {
+        it('should delete all artist artwork from database', () => {
+            // Arrange, Act
+            artistArtworkRemover.removeArtistArtworkWithDefaultIdAsync();
+
+            // Assert
+            artistArtworkRepositoryMock.verify((x) => x.deleteAllArtistArtwork(), Times.once());
+        });
+    });
 });

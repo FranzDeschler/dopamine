@@ -12,9 +12,7 @@ import { ArtistArtworkCacheId } from '../../services/artist-artwork-cache/artist
 
 @Injectable()
 export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
-    public constructor(
-        private databaseFactory: DatabaseFactory,
-    ) {}
+    public constructor(private databaseFactory: DatabaseFactory) {}
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
         const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
@@ -75,6 +73,18 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
         );
 
         const info = statement.run();
+        return info.changes;
+    }
+
+    public deleteAllArtistArtwork(): number {
+        const statement = this.database.prepare(`DELETE FROM ArtistArtwork WHERE 1=1;`);
+        const info = statement.run();
+        return info.changes;
+    }
+
+    public deleteArtistArtworkWithDefaultId(): number {
+        const statement = this.database.prepare(`DELETE FROM ArtistArtwork WHERE ArtworkID=?`);
+        const info = statement.run(ArtistArtworkCacheId.defaultArtworkId);
         return info.changes;
     }
 

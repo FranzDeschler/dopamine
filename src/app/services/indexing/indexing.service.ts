@@ -130,7 +130,24 @@ export class IndexingService implements OnDestroy {
         this.logger.info('Indexing collection.', 'IndexingService', 'indexAlbumArtworkOnlyAsync');
 
         await this.albumArtworkIndexer.indexAlbumArtworkAsync();
-        await this.albumArtworkIndexer.indexAlbumArtworkAsync();
+
+        this.isIndexingCollection = false;
+        this.indexingFinished.next();
+    }
+
+    public async indexArtistArtworkOnlyAsync(onlyWhenHasNoArtwork: boolean): Promise<void> {
+        if (this.isIndexingCollection) {
+            this.logger.info('Already indexing.', 'IndexingService', 'indexArtistArtworkOnlyAsync');
+            return;
+        }
+
+        this.isIndexingCollection = true;
+
+        if (onlyWhenHasNoArtwork) {
+            await this.artistArtworkIndexer.refreshMissingArtistsArtworkAsync();
+        } else {
+            await this.artistArtworkIndexer.refreshAllArtistsArtworkAsync();
+        }
 
         this.isIndexingCollection = false;
         this.indexingFinished.next();

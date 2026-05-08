@@ -20,7 +20,7 @@ export class ArtistArtworkRemover {
     public async removeArtistArtworkThatHasNoTrackAsync(): Promise<void> {
         const timer: Timer = new Timer();
         timer.start();
-        
+
         try {
             const numberOfArtistArtworkToRemove: number = this.artistArtworkRepository.getNumberOfArtistArtworkThatHasNoTrack();
 
@@ -108,6 +108,37 @@ export class ArtistArtworkRemover {
                 'ArtistArtworkRemover',
                 'removeArtistArtworkThatIsNotInTheDatabaseFromDiskAsync',
             );
+        }
+    }
+
+    public removeArtistArtworkWithDefaultIdAsync(): void {
+        try {
+            const numberOfDeletedEntries: number = this.artistArtworkRepository.deleteArtistArtworkWithDefaultId();
+            this.logger.info(
+                `Deleted ${numberOfDeletedEntries} artist artwork from database`,
+                'ArtistArtworkRemover',
+                'removeArtistArtworkWithDefaultIdAsync',
+            );
+        } catch (e) {
+            this.logger.error(
+                e,
+                'Could not remove artist artwork from disk',
+                'ArtistArtworkRemover',
+                'removeArtistArtworkWithDefaultIdAsync',
+            );
+        }
+    }
+
+    public removeAllArtistArtworkAsync(): void {
+        try {
+            const numberOfDeletedEntries: number = this.artistArtworkRepository.deleteAllArtistArtwork();
+            this.logger.info(
+                `Deleted ${numberOfDeletedEntries} artist artwork from database`,
+                'ArtistArtworkRemover',
+                'removeAllArtistArtworkAsync',
+            );
+        } catch (e) {
+            this.logger.error(e, 'Could not remove artist artwork from disk', 'ArtistArtworkRemover', 'removeAllArtistArtworkAsync');
         }
     }
 }
