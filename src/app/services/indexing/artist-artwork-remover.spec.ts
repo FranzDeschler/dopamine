@@ -264,7 +264,7 @@ describe('ArtistArtworkRemover', () => {
     describe('removeAllArtistArtworkAsync', () => {
         it('should delete all artist artwork from database', () => {
             // Arrange, Act
-            artistArtworkRemover.removeArtistArtworkWithDefaultIdAsync();
+            artistArtworkRemover.removeAllArtistArtworkAsync();
 
             // Assert
             artistArtworkRepositoryMock.verify((x) => x.deleteAllArtistArtwork(), Times.once());

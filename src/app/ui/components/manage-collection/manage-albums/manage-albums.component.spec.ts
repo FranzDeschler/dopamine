@@ -73,7 +73,7 @@ describe('ManageAlbumsComponent', () => {
     describe('refreshMissingArtistImagesAsync', () => {
         it('should index artwork only, for artists with missing artwork', async () => {
             // Act
-            await component.refreshMissingCoversAsync();
+            await component.refreshMissingArtistImagesAsync();
 
             // Assert
             indexingServiceMock.verify((x) => x.indexArtistArtworkOnlyAsync(true), Times.exactly(1));
