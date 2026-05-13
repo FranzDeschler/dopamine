@@ -274,6 +274,7 @@ describe('validate i18n', () => {
         'show-in-the-collection',
         'show-love',
         'show-rating',
+        'show-refresh-notification-at-startup',
         'show-welcome-screen-now',
         'show-welcome-screen-on-next-restart',
         'showcase',
