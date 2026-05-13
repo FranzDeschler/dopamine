@@ -95,4 +95,5 @@ export const DEFAULT_SETTINGS = {
     showRichLyrics: false,
     richLyricsLineCount: 2,
     richLyricsFontSize: 1,
+    showRefreshNotificationAtStartup: true,
 } as const;

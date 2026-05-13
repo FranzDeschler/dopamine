@@ -15,6 +15,7 @@ import { IFileMetadata } from '../../common/metadata/i-file-metadata';
 import { Track } from '../../data/entities/track';
 import { TrackFiller } from './track-filler';
 import { PlaybackService } from '../playback/playback.service';
+import { SchedulerBase } from '../../common/scheduling/scheduler.base';
 import { ArtistArtworkIndexer } from './artist-artwork-indexer';
 
 @Injectable()
@@ -33,6 +34,7 @@ export class IndexingService implements OnDestroy {
         private trackRepository: TrackRepositoryBase,
         private trackFiller: TrackFiller,
         private desktop: DesktopBase,
+        private scheduler: SchedulerBase,
         private settings: SettingsBase,
         private ipcProxy: IpcProxyBase,
         private logger: Logger,
@@ -59,25 +61,38 @@ export class IndexingService implements OnDestroy {
             PromiseUtils.noAwait(this.showNotification(message));
         });
 
-        this.ipcProxy.onIndexingWorkerExit$.subscribe(async () => {
-            await this.albumArtworkIndexer.indexAlbumArtworkAsync();
-            await this.artistArtworkIndexer.indexArtistArtworkAsync();
-            this.isIndexingCollection = false;
-            this.indexingFinished.next();
+        this.ipcProxy.onIndexingWorkerExit$.subscribe(() => {
+            void this.handleOnIndexingWorkerExitAsync();
         });
     }
 
-    public indexCollectionIfOutdated(): void {
+    private async handleOnIndexingWorkerExitAsync(): Promise<void> {
+        await this.albumArtworkIndexer.indexAlbumArtworkAsync();
+        await this.artistArtworkIndexer.indexArtistArtworkAsync();
+        this.isIndexingCollection = false;
+        this.indexingFinished.next();
+    }
+
+    public async indexCollectionIfOutdatedAsync(): Promise<void> {
+        if (this.settings.showRefreshNotificationAtStartup) {
+            await this.notificationService.refreshingAsync();
+            await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
+        }
         this.indexCollection('outdated');
     }
 
-    public indexCollectionAlways(): void {
+    public async indexCollectionAlwaysAsync(): Promise<void> {
+        await this.notificationService.refreshingAsync();
+        await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
         this.indexCollection('always');
     }
 
     public async indexCollectionIfOptionsHaveChangedAsync(): Promise<void> {
         if (this.foldersHaveChanged) {
             this.logger.info('Folders have changed. Indexing collection.', 'IndexingService', 'indexCollectionIfOptionsHaveChanged');
+
+            await this.notificationService.refreshingAsync();
+            await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
             this.indexCollection('always');
         } else if (this.albumGroupingHasChanged) {
             this.logger.info(
@@ -168,7 +183,7 @@ export class IndexingService implements OnDestroy {
     private async showNotification(message: IIndexingMessage): Promise<void> {
         switch (message.type) {
             case 'refreshing': {
-                await this.notificationService.refreshing();
+                await this.notificationService.refreshingAsync();
                 break;
             }
             case 'addingTracks': {
@@ -204,7 +219,6 @@ export class IndexingService implements OnDestroy {
     private indexCollection(task: string): void {
         if (this.isIndexingCollection) {
             this.logger.info('Already indexing.', 'IndexingService', 'indexCollection');
-
             return;
         }
 
