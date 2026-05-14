@@ -309,6 +309,7 @@ import { ArtistArtworkCacheServiceBase } from './services/artist-artwork-cache/a
 import { ArtistArtworkCacheService } from './services/artist-artwork-cache/artist-artwork-cache.service';
 import { ArtistModelFactory } from './services/artist/artist-model-factory';
 import { ArtistsKeyGenerator } from './data/artists-key-generator';
+import { MusicBrainzApi } from './common/api/musicbrainz/musicbrainz.api';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -540,6 +541,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         FanartApi,
         ChartLyricsApi,
         AZLyricsApi,
+        MusicBrainzApi,
         MetadataPatcher,
         TracksColumnsOrdering,
         SemanticZoomHeaderAdder,

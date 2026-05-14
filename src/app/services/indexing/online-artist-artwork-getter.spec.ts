@@ -6,6 +6,7 @@ import { OnlineArtistArtworkGetter } from './online-artist-artwork-getter';
 import { LastfmApi } from '../../common/api/lastfm/lastfm.api';
 import { OnlineArtistImageGetter } from '../artist-information/online-artist-image-getter';
 import { Constants } from '../../common/application/constants';
+import { MusicBrainzApi } from '../../common/api/musicbrainz/musicbrainz.api';
 
 const artist = 'metallica';
 const expectedArtistArtwork: Buffer = Buffer.from([1, 2, 3]);
@@ -15,6 +16,7 @@ describe('OnlineArtistArtworkGetter', () => {
     let onlineArtistImageGetter: IMock<OnlineArtistImageGetter>;
     let imageProcessorMock: IMock<ImageProcessor>;
     let lastfmApiMock: IMock<LastfmApi>;
+    let musicBrainzApi: IMock<MusicBrainzApi>;
     let loggerMock: IMock<Logger>;
     let onlineArtistArtworkGetter: OnlineArtistArtworkGetter;
     let lastfmArtist: LastfmArtist;
@@ -23,12 +25,14 @@ describe('OnlineArtistArtworkGetter', () => {
         onlineArtistImageGetter = Mock.ofType<OnlineArtistImageGetter>();
         imageProcessorMock = Mock.ofType<ImageProcessor>();
         lastfmApiMock = Mock.ofType<LastfmApi>();
+        musicBrainzApi = Mock.ofType<MusicBrainzApi>();
         loggerMock = Mock.ofType<Logger>();
 
         onlineArtistArtworkGetter = new OnlineArtistArtworkGetter(
             onlineArtistImageGetter.object,
             imageProcessorMock.object,
             lastfmApiMock.object,
+            musicBrainzApi.object,
             loggerMock.object,
         );
 
@@ -37,11 +41,30 @@ describe('OnlineArtistArtworkGetter', () => {
     });
 
     describe('getOnlineArtistArtworkAsync', () => {
-        it('should download artist image', async () => {
+        it('should find artist image via last.fm API', async () => {
             // Arrange
-            lastfmApiMock
-                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-                .returns(() => Promise.resolve(lastfmArtist));
+            lastfmApiMock.setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN')).returns(() => Promise.resolve(lastfmArtist));
+            onlineArtistImageGetter
+                .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
+                .returns(() => Promise.resolve(imageUrl));
+            imageProcessorMock
+                .setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString()))
+                .returns(() => Promise.resolve(expectedArtistArtwork));
+
+            // Act
+            const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(artist);
+
+            // Assert
+            expect(actualArtistArtwork).toEqual(expectedArtistArtwork);
+        });
+
+        it('should use MusicBrainz API as fallback', async () => {
+            // Arrange
+            lastfmApiMock.setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN')).returns(() => Promise.resolve(lastfmArtist));
+            onlineArtistImageGetter.setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId)).returns(() => Promise.resolve(''));
+            musicBrainzApi
+                .setup((x) => x.getMusicBrainzIdAsync(It.isAnyString()))
+                .returns(() => Promise.resolve(lastfmArtist.musicBrainzId));
             onlineArtistImageGetter
                 .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
                 .returns(() => Promise.resolve(imageUrl));
@@ -58,12 +81,9 @@ describe('OnlineArtistArtworkGetter', () => {
 
         it('should return empty image if no image was found', async () => {
             // Arrange
-            lastfmApiMock
-                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-                .returns(() => Promise.resolve(lastfmArtist));
-            onlineArtistImageGetter
-                .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
-                .returns(() => Promise.resolve(''));
+            lastfmApiMock.setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN')).returns(() => Promise.resolve(lastfmArtist));
+            onlineArtistImageGetter.setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId)).returns(() => Promise.resolve(''));
+            musicBrainzApi.setup((x) => x.getMusicBrainzIdAsync(It.isAnyString())).returns(() => Promise.resolve(''));
 
             // Act
             const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(artist);
@@ -74,12 +94,7 @@ describe('OnlineArtistArtworkGetter', () => {
 
         it('should return undefined if getting online artist info throws error', async () => {
             // Arrange
-            imageProcessorMock
-                .setup((x) => x.convertOnlineImageToBufferAsync(imageUrl))
-                .returns(() => Promise.resolve(expectedArtistArtwork));
-            lastfmApiMock
-                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-                .throws(new Error('An error occurred'));
+            lastfmApiMock.setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN')).throws(new Error('An error occurred'));
 
             // Act
             const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(artist);
@@ -106,15 +121,11 @@ describe('OnlineArtistArtworkGetter', () => {
 
         it('should return undefined if converting file to data throws error', async () => {
             // Arrange
-            lastfmApiMock
-                .setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN'))
-                .returns(() => Promise.resolve(lastfmArtist));
+            lastfmApiMock.setup((x) => x.getArtistInfoAsync(It.isAnyString(), false, 'EN')).returns(() => Promise.resolve(lastfmArtist));
             onlineArtistImageGetter
                 .setup((x) => x.getArtistImageAsync(lastfmArtist.musicBrainzId))
                 .returns(() => Promise.resolve(imageUrl));
-            imageProcessorMock
-                .setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString()))
-                .throws(new Error('An error occurred'));
+            imageProcessorMock.setup((x) => x.convertOnlineImageToBufferAsync(It.isAnyString())).throws(new Error('An error occurred'));
 
             // Act
             const actualArtistArtwork: Buffer | undefined = await onlineArtistArtworkGetter.getOnlineArtworkAsync(artist);
