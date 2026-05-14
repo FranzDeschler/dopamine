@@ -21,6 +21,7 @@ import { PlaybackService } from '../../../../../services/playback/playback.servi
 import { TrackServiceBase } from '../../../../../services/track/track.service.base';
 import { TrackModels } from '../../../../../services/track/track-models';
 import { ApplicationPaths } from '../../../../../common/application/application-paths';
+import { SettingsMock } from '../../../../../testing/settings-mock';
 
 export class CdkVirtualScrollViewportMock {
     private _scrollToIndexIndex: number = -1;
@@ -59,6 +60,7 @@ describe('ArtistBrowserComponent', () => {
     let semanticZoomService_zoomOutRequested: Subject<void>;
     let semanticZoomService_zoomInRequested: Subject<string>;
     let applicationService_mouseButtonReleased: Subject<void>;
+    let settingsMock: SettingsMock;
 
     let artist1: ArtistModel;
     let artist2: ArtistModel;
@@ -77,6 +79,7 @@ describe('ArtistBrowserComponent', () => {
             artistSorterMock.object,
             semanticZoomHeaderAdder,
             schedulerMock.object,
+            settingsMock,
             loggerMock.object,
         );
     }
@@ -93,6 +96,7 @@ describe('ArtistBrowserComponent', () => {
             artistSorterMock.object,
             semanticZoomHeaderAdderMock.object,
             schedulerMock.object,
+            settingsMock,
             loggerMock.object,
         );
     }
@@ -114,6 +118,7 @@ describe('ArtistBrowserComponent', () => {
         loggerMock = Mock.ofType<Logger>();
         playbackServiceMock = Mock.ofType<PlaybackService>();
         applicationPathsMock = Mock.ofType<ApplicationPaths>();
+        settingsMock = new SettingsMock();
 
         guidFactoryMock.setup((x) => x.create()).returns(() => '91c70666-8ad0-4037-8590-47f0c453c97d');
 
