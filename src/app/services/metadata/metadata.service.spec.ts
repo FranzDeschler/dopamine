@@ -48,9 +48,6 @@ class FileMetadataImplementation implements IFileMetadata {
     }
 
     public async loadAsync(): Promise<void> {}
-    public get albumAndTrackArtists(): string[] {
-        return [];
-    }
 }
 
 describe('MetadataService', () => {

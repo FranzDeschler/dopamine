@@ -11,8 +11,6 @@ import {
 } from 'node-taglib-sharp';
 import { IFileMetadata } from './i-file-metadata';
 import { RatingConverter } from './rating-converter';
-import { StringUtils } from '../utils/string-utils';
-import { ArrayUtils } from '../utils/array-utils';
 
 export class TagLibFileMetadata implements IFileMetadata {
     private _rating: number = 0;
@@ -226,22 +224,6 @@ export class TagLibFileMetadata implements IFileMetadata {
         }
 
         tagLibFile.dispose();
-    }
-
-    public get albumAndTrackArtists(): string[] {
-        const artists: string[] = [];
-
-        if (!ArrayUtils.isNullOrEmpty(this.albumArtists)) {
-            const albumArtists: string[] = this.albumArtists.filter((x) => !StringUtils.isNullOrWhiteSpace(x));
-            artists.push(...albumArtists);
-        }
-
-        if (!ArrayUtils.isNullOrEmpty(this.artists)) {
-            const trackArtists: string[] = this.artists.filter((x) => !StringUtils.isNullOrWhiteSpace(x));
-            artists.push(...trackArtists);
-        }
-
-        return artists;
     }
 
     private readRatingFromFile(tagLibFile: File): number {

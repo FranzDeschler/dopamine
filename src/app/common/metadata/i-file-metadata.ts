@@ -24,5 +24,4 @@ export interface IFileMetadata {
 
     save(): void;
     loadAsync(): Promise<void>;
-    get albumAndTrackArtists(): string[];
 }
