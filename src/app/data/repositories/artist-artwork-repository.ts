@@ -7,8 +7,8 @@ import { Injectable } from '@angular/core';
 import { DatabaseFactory } from '../database-factory';
 import { ArtistArtwork } from '../entities/artist-artwork';
 import { ArtistArtworkRepositoryBase } from './artist-artwork-repository.base';
-import { DataDelimiter } from '../data-delimiter';
 import { ArtistArtworkCacheId } from '../../services/artist-artwork-cache/artist-artwork-cache-id';
+import { Constants } from '../../common/application/constants';
 
 @Injectable()
 export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
@@ -16,8 +16,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
 
     public addArtistArtwork(artistArtwork: ArtistArtwork): void {
         const statement = this.database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
-        const delimitedArtist: string = DataDelimiter.toDelimitedString([artistArtwork.artist.toLowerCase()]);
-        statement.run(delimitedArtist, artistArtwork.artworkId);
+        statement.run(artistArtwork.artist.toLowerCase(), artistArtwork.artworkId);
     }
 
     public getAllArtistArtwork(): ArtistArtwork[] | undefined {
@@ -40,7 +39,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             WHERE Artist=?;`,
         );
 
-        return statement.get(DataDelimiter.toDelimitedString([artist.toLowerCase()]));
+        return statement.get(artist.toLowerCase());
     }
 
     public getNumberOfArtistArtwork(): number {
@@ -55,7 +54,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             FROM ArtistArtwork AS a
             WHERE NOT EXISTS (
                 SELECT 1 FROM Track AS t
-                WHERE t.ArtistsKey LIKE '%' || a.Artist || '%'
+                WHERE t.ArtistsKey LIKE '%${Constants.columnValueDelimiter}' || a.Artist || '${Constants.columnValueDelimiter}%'
             );`,
         );
 
@@ -68,7 +67,7 @@ export class ArtistArtworkRepository implements ArtistArtworkRepositoryBase {
             `DELETE FROM ArtistArtwork AS a 
              WHERE NOT EXISTS (
                 SELECT 1 FROM Track AS t
-                WHERE t.ArtistsKey LIKE '%' || a.Artist || '%'
+                WHERE t.ArtistsKey LIKE '%${Constants.columnValueDelimiter}' || a.Artist || '${Constants.columnValueDelimiter}%'
              );`,
         );
 

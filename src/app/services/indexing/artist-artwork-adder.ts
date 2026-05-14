@@ -7,7 +7,6 @@ import { ArtistArtworkCacheServiceBase } from '../artist-artwork-cache/artist-ar
 import { ArtistArtworkRepositoryBase } from '../../data/repositories/artist-artwork-repository.base';
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
 import { NotificationServiceBase } from '../notification/notification.service.base';
-import { DataDelimiter } from '../../data/data-delimiter';
 import { ArrayUtils } from '../../common/utils/array-utils';
 
 @Injectable({ providedIn: 'root' })
@@ -25,9 +24,7 @@ export class ArtistArtworkAdder {
         try {
             const allIndividualArtists: string[] = this.trackRepository.getAllIndividualArtists() ?? [];
             const allArtistArtworks: ArtistArtwork[] = this.artistArtworkRepository.getAllArtistArtwork() ?? [];
-            const artistsWithArtwork: string[] = allArtistArtworks.flatMap((artistArtwork: ArtistArtwork): string[] =>
-                DataDelimiter.fromDelimitedString(artistArtwork.artist),
-            );
+            const artistsWithArtwork: string[] = allArtistArtworks.flatMap((artistArtwork: ArtistArtwork): string => artistArtwork.artist);
             const artistsWithoutArtwork: string[] = allIndividualArtists.filter(
                 (artist: string): boolean => artist !== '' && !artistsWithArtwork.includes(artist),
             );

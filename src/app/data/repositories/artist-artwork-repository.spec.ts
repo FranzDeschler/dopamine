@@ -33,9 +33,9 @@ describe('ArtistArtworkRepository', () => {
 
     function fillTestData(): void {
         const statement = database.prepare('INSERT INTO ArtistArtwork (Artist, ArtworkID) VALUES (?, ?);');
-        statement.run(';metallica;', 'artist-1');
-        statement.run(';aerosmith;', 'artist-2');
-        statement.run(';alanis morissette;', 'artist-3');
+        statement.run('metallica', 'artist-1');
+        statement.run('aerosmith', 'artist-2');
+        statement.run('alanis morissette', 'artist-3');
     }
 
     beforeEach(() => {
@@ -66,7 +66,7 @@ describe('ArtistArtworkRepository', () => {
             expect(allArtwork!.length).toEqual(4);
             expect(allArtwork).toContainEqual(
                 expect.objectContaining({
-                    artist: ';apocalyptica;',
+                    artist: 'apocalyptica',
                     artworkId: 'artist-4',
                 }),
             );
@@ -91,7 +91,7 @@ describe('ArtistArtworkRepository', () => {
 
             // Assert
             expect(artwork).not.toBeUndefined();
-            expect(artwork!.artist).toEqual(';metallica;');
+            expect(artwork!.artist).toEqual('metallica');
             expect(artwork!.artworkId).toEqual('artist-1');
         });
     });
