@@ -44,7 +44,7 @@ export class ArtistArtworkAdder {
                 e,
                 'Could not add artist artwork for tracks that need artist artwork indexing',
                 'ArtistArtworkAdder',
-                'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
+                'addMissingArtistArtworkAsync',
             );
         }
     }
@@ -69,12 +69,7 @@ export class ArtistArtworkAdder {
                     }
                 }
             } catch (e: unknown) {
-                this.logger.error(
-                    e,
-                    `Could not add artist artwork for '${artist}'`,
-                    'ArtistArtworkAdder',
-                    'addArtistArtworkForTracksThatNeedArtistArtworkIndexingAsync',
-                );
+                this.logger.error(e, `Could not add artist artwork for '${artist}'`, 'ArtistArtworkAdder', 'addMissingArtistArtworkAsync');
             }
         }
     }
