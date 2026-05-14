@@ -1,10 +1,9 @@
 const { StringUtils } = require('../common/utils/string-utils');
 
 class TrackFiller {
-    constructor(fileMetadataFactory, albumKeyGenerator, artistsKeyGenerator, trackFieldCreator, metadataPatcher, mimeTypes, fileAccess, dateTime, logger) {
+    constructor(fileMetadataFactory, albumKeyGenerator, trackFieldCreator, metadataPatcher, mimeTypes, fileAccess, dateTime, logger) {
         this.fileMetadataFactory = fileMetadataFactory;
         this.albumKeyGenerator = albumKeyGenerator;
-        this.artistsKeyGenerator = artistsKeyGenerator;
         this.trackFieldCreator = trackFieldCreator;
         this.metadataPatcher = metadataPatcher;
         this.mimeTypes = mimeTypes;
@@ -36,8 +35,6 @@ class TrackFiller {
             );
             track.albumKey2 = this.albumKeyGenerator.generateAlbumKey2(fileMetadata.album);
             track.albumKey3 = this.albumKeyGenerator.generateAlbumKey3(this.fileAccess.getDirectoryPath(track.path));
-
-            track.artistKey = this.artistsKeyGenerator.generateArtistKey(track.artists);
 
             if (!fillOnlyEssentialMetadata) {
                 const dateNowTicks = this.dateTime.convertDateToTicks(new Date());
