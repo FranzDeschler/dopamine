@@ -21,6 +21,7 @@ export class MusicBrainzApi {
     public constructor(private httpClient: HttpClient) {}
 
     public async getMusicBrainzIdAsync(artistName: string): Promise<string> {
+        artistName = this.normalize(artistName);
         const url: string = `http://musicbrainz.org/ws/2/artist/?fmt=json&query=artist:${encodeURIComponent(artistName)}`;
         const jsonResponse: any = await this.httpClient.get<any>(url).toPromise();
 
@@ -31,6 +32,10 @@ export class MusicBrainzApi {
         } else {
             throw new Error(jsonResponse?.error !== undefined ? (jsonResponse.error as string) : 'Unknown error');
         }
+    }
+
+    private normalize(artistName: string): string {
+        return artistName.replace(/'/g, '’').normalize('NFKC').toLowerCase();
     }
 
     private getArtistByNameOrAlias(artists: MusicBrainzArtist[], artistName: string): MusicBrainzArtist | undefined {
