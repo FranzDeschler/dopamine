@@ -1,4 +1,6 @@
+const { MimeTypes } = require('./mime-types');
 const { StringUtils } = require('../common/utils/string-utils');
+const { FileAccess } = require('../common/io/file-access');
 
 class TrackFiller {
     constructor(fileMetadataFactory, albumKeyGenerator, trackFieldCreator, metadataPatcher, mimeTypes, fileAccess, dateTime, logger) {

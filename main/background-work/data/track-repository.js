@@ -121,7 +121,6 @@ class TrackRepository {
             albumKey: track.albumKey,
             albumKey2: track.albumKey2,
             albumKey3: track.albumKey3,
-            artistsKey: track.artistsKey,
             path: track.path,
             safePath: track.path.toLowerCase(),
             fileName: track.fileName,
